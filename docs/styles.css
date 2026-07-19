@@ -55,12 +55,16 @@ h1 em{color:#79a600;font-style:normal}
 .next-key{text-align:center;color:var(--muted);font-size:10px;letter-spacing:.15em}
 .next-key kbd{margin-left:8px;color:#699000;border:1px solid #b9c5bd;padding:5px 8px;background:#f5f8f5}
 .next-key span{display:inline-block;margin-left:12px;color:#087f75;font-weight:800}
-.keyboard-guide{width:min(720px,100%);margin:14px auto 0;display:grid;gap:5px}
-.key-row{display:flex;justify-content:center;gap:4px}
-.guide-key{height:27px;min-width:32px;padding:0 5px;border:1px solid #ccd6cf;border-bottom-width:2px;border-radius:4px;background:#f8faf8;color:#738078;display:grid;place-items:center;font:700 10px monospace;transition:.12s}
-.guide-key.wide{min-width:180px}.guide-key.active{color:#17210f;background:#b9eb36;border-color:#86ad1f;transform:translateY(-2px);box-shadow:0 5px 12px #789b2738}
-.finger-legend{display:flex;justify-content:center;gap:7px;margin-top:6px;color:#87928c;font-size:8px;letter-spacing:.06em}
-.finger-legend span{padding:3px 6px;border-radius:9px;background:#f0f4f1}.finger-legend .active{color:#087f75;background:#ddf5f1;font-weight:800}
+.keyboard-guide{width:min(760px,100%);margin:14px auto 0;position:relative;padding-bottom:72px}
+.keyboard-case{position:relative;z-index:2;padding:9px 12px 12px;border:2px solid #d99b9f;border-radius:13px;background:#efb9bc;box-shadow:0 9px 18px #a5696d28,inset 0 1px #fff8}
+.key-row{display:flex;justify-content:center;gap:5px;margin-bottom:5px}.key-row:last-child{margin-bottom:0}.row-2{padding-left:18px}.row-3{padding-left:32px}.row-4{padding-left:48px}
+.guide-key{height:31px;min-width:39px;padding:0 5px;border:1px solid #b7bdb9;border-bottom:3px solid #9da5a0;border-radius:6px;background:#f8faf8;color:#5e6963;display:grid;place-items:center;font:700 10px monospace;transition:.12s;box-shadow:0 1px 2px #6d55551f}
+.guide-key.wide{min-width:260px}.guide-key.active{position:relative;z-index:5;color:#17210f;background:#b9eb36;border-color:#739814;transform:translateY(-3px);box-shadow:0 0 0 3px #e9ffad,0 7px 14px #6e8e294d}
+.hands-layer{position:absolute;z-index:3;left:12%;right:12%;bottom:0;height:100px;display:flex;justify-content:space-between;pointer-events:none}
+.hand{position:relative;width:250px;height:70px;margin-top:28px;border:2px solid #4f6259;background:#dce9e2e8;border-radius:45% 45% 24px 24px;box-shadow:0 8px 16px #3b544738}.palm{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#61736a;font-size:8px;letter-spacing:.16em}.finger{position:absolute;top:-40px;width:34px;height:72px;border:2px solid #4f6259;border-radius:18px 18px 10px 10px;background:#dce9e2e8;transform-origin:50% 100%;transition:.15s}.finger i{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#61736a;font:800 9px monospace;font-style:normal}.finger.active{z-index:8;background:#b9eb36;border-color:#5f8010;transform:translateY(-12px);box-shadow:0 0 0 4px #efffbf,0 8px 16px #75952755}.finger.active i{background:#173018;color:#fff}
+.left .finger-1{left:12px;top:-16px;transform:rotate(-13deg)}.left .finger-2{left:55px;top:-32px;transform:rotate(-7deg)}.left .finger-3{left:99px;top:-42px}.left .finger-4{left:143px;top:-34px;transform:rotate(5deg)}.left .finger-5{right:8px;top:2px;height:56px;transform:rotate(48deg)}
+.right .finger-1{left:8px;top:2px;height:56px;transform:rotate(-48deg)}.right .finger-2{left:73px;top:-34px;transform:rotate(-5deg)}.right .finger-3{left:117px;top:-42px}.right .finger-4{left:161px;top:-32px;transform:rotate(7deg)}.right .finger-5{right:12px;top:-16px;transform:rotate(13deg)}
+.left .finger.active,.right .finger.active{transform:translateY(-12px)}
 .end-button{display:block;margin:12px auto 0;padding:9px 18px;border:1px solid #c7d0ca;background:#fff;color:#65726b;font-size:9px;font-weight:800;letter-spacing:.14em;cursor:pointer}
 .end-button:hover{border-color:var(--coral);color:#b94536}
 .pause-screen{position:absolute;inset:0;z-index:4;display:grid;place-content:center;text-align:center;background:#f8fbf7ed}
@@ -93,7 +97,7 @@ body.bad .game-shell{animation:shake .11s linear;box-shadow:0 0 0 1px #f25f4b,0 
 .levels button{min-width:0;flex:1;padding:10px 8px;text-align:center}
 .levels small{display:none}
 .target{font-size:22px}
-.guide-key{min-width:22px;height:25px;font-size:8px;padding:0 2px}.guide-key.wide{min-width:120px}.finger-legend{display:none}
+.keyboard-guide{padding-bottom:58px}.keyboard-case{padding:6px}.key-row{gap:3px;margin-bottom:3px}.guide-key{min-width:25px;height:25px;font-size:8px;padding:0 2px}.guide-key.wide{min-width:145px}.row-2{padding-left:8px}.row-3{padding-left:14px}.row-4{padding-left:20px}.hands-layer{left:7%;right:7%;height:76px}.hand{width:150px;height:48px;margin-top:28px}.finger{width:21px;height:48px;top:-24px}.finger i{width:15px;height:15px;font-size:7px}.palm{display:none}.left .finger-1{left:5px;top:-8px}.left .finger-2{left:31px;top:-18px}.left .finger-3{left:57px;top:-24px}.left .finger-4{left:83px;top:-19px}.left .finger-5{right:4px;top:4px;height:38px}.right .finger-1{left:4px;top:4px;height:38px}.right .finger-2{left:45px;top:-19px}.right .finger-3{left:71px;top:-24px}.right .finger-4{left:97px;top:-18px}.right .finger-5{right:5px;top:-8px}
 .game-footer{gap:15px}
 .game-footer span:first-child{display:none}
 footer{display:none}

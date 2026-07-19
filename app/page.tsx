@@ -11,6 +11,8 @@ const FINGER_KEYS: Record<string, string> = {
   "RIGHT INDEX":"67yuhjnm", "RIGHT MIDDLE":"8ik,", "RIGHT RING":"9ol.", "RIGHT PINKY":"0-=p[]\\;'/", "THUMB":" ",
 };
 const FINGERS = Object.keys(FINGER_KEYS);
+const LEFT_FINGERS = ["LEFT PINKY", "LEFT RING", "LEFT MIDDLE", "LEFT INDEX", "THUMB"];
+const RIGHT_FINGERS = ["THUMB", "RIGHT INDEX", "RIGHT MIDDLE", "RIGHT RING", "RIGHT PINKY"];
 
 type Level = "LETTERS" | "NUMBERS" | "SYMBOLS" | "RUSH" | "EXTREME";
 type GameState = "ready" | "playing" | "paused" | "over";
@@ -29,6 +31,11 @@ function playSound(kind: "key" | "error") {
   const length = Math.floor(audioContext.sampleRate * .025); const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate); const data = buffer.getChannelData(0);
   for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
   const source = audioContext.createBufferSource(); const filter = audioContext.createBiquadFilter(); const gain = audioContext.createGain(); source.buffer = buffer; filter.type = "highpass"; filter.frequency.value = 900; gain.gain.value = .12; source.connect(filter).connect(gain).connect(audioContext.destination); source.start(now);
+}
+
+function HandGuide({ side, names, activeFinger }: { side: "left" | "right"; names: string[]; activeFinger: string }) {
+  const initial = (name: string) => name.includes("PINKY") ? "P" : name.includes("RING") ? "R" : name.includes("MIDDLE") ? "M" : name.includes("INDEX") ? "I" : "T";
+  return <div className={`hand ${side}`}><div className="palm"><b>{side.toUpperCase()} HAND</b></div>{names.map((name, i) => <span key={name} className={`finger finger-${i + 1}${name === activeFinger ? " active" : ""}`} title={name}><i>{initial(name)}</i></span>)}</div>;
 }
 
 function makeTarget(level: Level) {
@@ -181,8 +188,8 @@ export default function Home() {
             <div className="progress"><i style={{width: `${index / target.length * 100}%`}} /></div>
             <div className="next-key">NEXT KEY <kbd>{nextKey === " " ? "SPACE" : nextKey}</kbd><span>{activeFinger}</span></div>
             <div className="keyboard-guide" aria-label="Keyboard finger guide">
-              {KEY_ROWS.map((row, rowIndex) => <div className="key-row" key={rowIndex}>{row.split("").map((key) => <span key={key} className={`guide-key${key === " " ? " wide" : ""}${key === activeKey ? " active" : ""}`}>{key === " " ? "SPACE" : key.toUpperCase()}</span>)}</div>)}
-              <div className="finger-legend">{FINGERS.map((finger) => <span key={finger} className={finger === activeFinger ? "active" : ""}>{finger}</span>)}</div>
+              <div className="keyboard-case">{KEY_ROWS.map((row, rowIndex) => <div className={`key-row row-${rowIndex + 1}`} key={rowIndex}>{row.split("").map((key) => <span key={key} className={`guide-key${key === " " ? " wide" : ""}${key === activeKey ? " active" : ""}`}>{key === " " ? "SPACE" : key.toUpperCase()}</span>)}</div>)}</div>
+              <div className="hands-layer"><HandGuide side="left" names={LEFT_FINGERS} activeFinger={activeFinger} /><HandGuide side="right" names={RIGHT_FINGERS} activeFinger={activeFinger} /></div>
             </div>
             <button className="end-button" onClick={finish}>END SESSION</button>
           </div>}

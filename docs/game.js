@@ -7,6 +7,8 @@ const FINGER_KEYS = {
   "RIGHT INDEX":"67yuhjnm", "RIGHT MIDDLE":"8ik,", "RIGHT RING":"9ol.", "RIGHT PINKY":"0-=p[]\\;'/", "THUMB":" "
 };
 const FINGERS = Object.keys(FINGER_KEYS);
+const LEFT_FINGERS = ["LEFT PINKY","LEFT RING","LEFT MIDDLE","LEFT INDEX","THUMB"];
+const RIGHT_FINGERS = ["THUMB","RIGHT INDEX","RIGHT MIDDLE","RIGHT RING","RIGHT PINKY"];
 const $ = (id) => document.getElementById(id);
 let level="RUSH", state="ready", target="", index=0, time=0, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, timer;
 let audioContext;
@@ -28,7 +30,8 @@ function sound(kind){
 
 function renderKeyboard(){
   const active=keyBase(target[index]||" "), finger=fingerFor(target[index]||" ");
-  $("keyboard-guide").innerHTML=KEY_ROWS.map(row=>`<div class="key-row">${[...row].map(key=>`<span class="guide-key${key===" "?" wide":""}${key===active?" active":""}">${key===" "?"SPACE":key.toUpperCase()}</span>`).join("")}</div>`).join("")+`<div class="finger-legend">${FINGERS.map(name=>`<span class="${name===finger?"active":""}">${name}</span>`).join("")}</div>`;
+  const hand=(side,names)=>`<div class="hand ${side}"><div class="palm"><b>${side.toUpperCase()} HAND</b></div>${names.map((name,i)=>`<span class="finger finger-${i+1}${name===finger?" active":""}" title="${name}"><i>${name.includes("PINKY")?"P":name.includes("RING")?"R":name.includes("MIDDLE")?"M":name.includes("INDEX")?"I":"T"}</i></span>`).join("")}</div>`;
+  $("keyboard-guide").innerHTML=`<div class="keyboard-case">${KEY_ROWS.map((row,rowIndex)=>`<div class="key-row row-${rowIndex+1}">${[...row].map(key=>`<span class="guide-key${key===" "?" wide":""}${key===active?" active":""}">${key===" "?"SPACE":key.toUpperCase()}</span>`).join("")}</div>`).join("")}</div><div class="hands-layer">${hand("left",LEFT_FINGERS)}${hand("right",RIGHT_FINGERS)}</div>`;
   $("finger-name").textContent=finger;
 }
 
