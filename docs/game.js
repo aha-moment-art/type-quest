@@ -1,15 +1,46 @@
 const WORDS = ["flux","orbit","pixel","nova","shift","vector","quick","blaze","echo","glitch","tempo","laser"];
 const SYMBOLS = ["!","?","@","#","$","%","&","*","+","-","=",":",";","/","_",".",","];
+const KEY_ROWS = ["1234567890-=","qwertyuiop[]\\","asdfghjkl;'","zxcvbnm,./"," "];
+const SHIFT_BASE = {"!":"1","@":"2","#":"3","$":"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0","_":"-","+":"=","{":"[","}":"]","|":"\\",":":";","\"":"'","<":",",">":".","?":"/"};
+const FINGER_KEYS = {
+  "LEFT PINKY":"`1qaz", "LEFT RING":"2wsx", "LEFT MIDDLE":"3edc", "LEFT INDEX":"45rtfgvb",
+  "RIGHT INDEX":"67yuhjnm", "RIGHT MIDDLE":"8ik,", "RIGHT RING":"9ol.", "RIGHT PINKY":"0-=p[]\\;'/", "THUMB":" "
+};
+const FINGERS = Object.keys(FINGER_KEYS);
 const $ = (id) => document.getElementById(id);
 let level="RUSH", state="ready", target="", index=0, time=0, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, timer;
+let audioContext;
+
+function keyBase(key){return (SHIFT_BASE[key]||key).toLowerCase();}
+function fingerFor(key){const base=keyBase(key);return FINGERS.find(name=>FINGER_KEYS[name].includes(base))||"RIGHT PINKY";}
+function sound(kind){
+  audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
+  if(audioContext.state==="suspended") audioContext.resume();
+  const now=audioContext.currentTime;
+  if(kind==="error"){
+    [0,0.09].forEach((delay,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type="square";osc.frequency.value=i?145:190;gain.gain.setValueAtTime(.07,now+delay);gain.gain.exponentialRampToValueAtTime(.001,now+delay+.08);osc.connect(gain).connect(audioContext.destination);osc.start(now+delay);osc.stop(now+delay+.09);});
+    return;
+  }
+  const length=Math.floor(audioContext.sampleRate*.025),buffer=audioContext.createBuffer(1,length,audioContext.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<length;i++) data[i]=(Math.random()*2-1)*(1-i/length);
+  const source=audioContext.createBufferSource(),filter=audioContext.createBiquadFilter(),gain=audioContext.createGain();source.buffer=buffer;filter.type="highpass";filter.frequency.value=900;gain.gain.value=.12;source.connect(filter).connect(gain).connect(audioContext.destination);source.start(now);
+}
+
+function renderKeyboard(){
+  const active=keyBase(target[index]||" "), finger=fingerFor(target[index]||" ");
+  $("keyboard-guide").innerHTML=KEY_ROWS.map(row=>`<div class="key-row">${[...row].map(key=>`<span class="guide-key${key===" "?" wide":""}${key===active?" active":""}">${key===" "?"SPACE":key.toUpperCase()}</span>`).join("")}</div>`).join("")+`<div class="finger-legend">${FINGERS.map(name=>`<span class="${name===finger?"active":""}">${name}</span>`).join("")}</div>`;
+  $("finger-name").textContent=finger;
+}
 
 function makeTarget(){
-  const groups=level==="WARM UP"?4:level==="RUSH"?6:8;
+  if(level==="LETTERS") return Array.from({length:8},()=>WORDS[Math.floor(Math.random()*WORDS.length)]).join(" ");
+  if(level==="NUMBERS") return Array.from({length:10},()=>String(Math.floor(Math.random()*900)+10)).join(" ");
+  if(level==="SYMBOLS") return Array.from({length:12},()=>SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)]).join(" ");
+  const groups=level==="RUSH"?6:8;
   return Array.from({length:groups},(_,i)=>{
     let word=WORDS[Math.floor(Math.random()*WORDS.length)];
-    const number=Math.floor(Math.random()*(level==="WARM UP"?90:900))+10;
+    const number=Math.floor(Math.random()*900)+10;
     const symbol=SYMBOLS[Math.floor(Math.random()*SYMBOLS.length)];
-    if(level==="WARM UP") return i%2?`${number}${symbol}`:word;
     if(level==="RUSH") return i%2?`${word}${symbol}${number}`:`${number}${symbol}${word}`;
     word=[...word].map(c=>Math.random()>.62?c.toUpperCase():c).join("");
     return i%2?`${symbol}${word}_${number}`:`${number}${symbol}${word}`;
@@ -39,6 +70,7 @@ function resumeGame(){
 function renderTarget(){
   $("target").innerHTML=[...target].map((c,i)=>`<span class="${i<index?"done":i===index?"current":"pending"}">${c===" "?"·":c}</span>`).join("");
   $("progress").style.width=`${index/target.length*100}%`; $("next-key").textContent=target[index]===" "?"SPACE":target[index];
+  renderKeyboard();
 }
 function start(){
   clearInterval(timer); target=makeTarget(); index=0; time=0; score=0; combo=0; bestCombo=0; correct=0; mistakes=0; state="playing";
@@ -54,8 +86,8 @@ function finish(){
 }
 function hit(key){
   if(state!=="playing"||key.length!==1)return;
-  if(key===target[index]){combo++;bestCombo=Math.max(bestCombo,combo);correct++;score+=10+Math.min(40,Math.floor(combo/5)*2);index++;document.body.classList.add("good");if(index>=target.length){target=makeTarget();index=0;} }
-  else{mistakes++;combo=0;score=Math.max(0,score-5);document.body.classList.add("bad");}
+  if(key===target[index]){sound("key");combo++;bestCombo=Math.max(bestCombo,combo);correct++;score+=10+Math.min(40,Math.floor(combo/5)*2);index++;document.body.classList.add("good");if(index>=target.length){target=makeTarget();index=0;} }
+  else{sound("error");mistakes++;combo=0;score=Math.max(0,score-5);document.body.classList.add("bad");}
   setTimeout(()=>document.body.classList.remove("good","bad"),120);renderTarget();stats();
 }
 document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.remove("selected"));button.classList.add("selected");level=button.dataset.level;$("footer-level").textContent=level;}));

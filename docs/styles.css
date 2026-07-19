@@ -27,30 +27,37 @@ h1 em{color:#79a600;font-style:normal}
 .mistake-stat{border-left:1px solid var(--line);padding-left:30px;text-align:center}
 .mistake-stat span{display:block;color:var(--muted);font-size:9px;letter-spacing:.16em;margin-bottom:6px}
 .mistake-stat strong{color:var(--coral);font:700 22px monospace}
-.arena{height:380px;position:relative;overflow:hidden;display:grid;place-items:center}
+.arena{min-height:520px;position:relative;overflow:hidden;display:grid;place-items:center}
 .grid-lines{position:absolute;inset:0;opacity:.28;background-image:linear-gradient(#d5ddd8 1px,transparent 1px),linear-gradient(90deg,#d5ddd8 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,transparent,#000 35%,transparent)}
 .overlay,.playfield{z-index:2;width:100%;text-align:center;padding:34px}
 .round-badge{display:inline-grid;place-items:center;border:1px solid #7fa515;color:#668b00;width:38px;height:25px;font:700 11px monospace}
 .overlay h2{font-size:28px;margin:13px 0 7px}
-.levels{display:flex;justify-content:center;gap:10px;margin:24px 0}
-.levels button{min-width:142px;padding:12px 18px;text-align:left;background:#f7faf7;border:1px solid var(--line);cursor:pointer}
+.levels{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:24px auto;max-width:760px}
+.levels button{min-width:132px;padding:12px 16px;text-align:left;background:#f7faf7;border:1px solid var(--line);cursor:pointer}
 .levels button:hover,.levels button.selected{border-color:#96c51d;background:#f3fbdc;box-shadow:inset 0 -3px #a9dc24}
 .levels b,.levels small{display:block}
 .levels small{color:var(--muted);font-size:9px;margin-top:4px}
 .start-button{display:inline-flex;align-items:center;gap:28px;border:0;background:#b9eb36;color:#17210f;padding:15px 17px 15px 26px;font-weight:900;cursor:pointer;box-shadow:0 10px 28px #7fa51728}
 .start-button kbd{font:700 9px monospace;border:1px solid #19221655;padding:5px 7px}
-.playfield{max-width:900px;text-align:left}
-.mission{display:flex;justify-content:space-between;margin-bottom:30px;color:var(--muted);font-size:10px;letter-spacing:.18em}
+.playfield{max-width:940px;text-align:left;padding-top:22px;padding-bottom:20px}
+.mission{display:flex;justify-content:space-between;margin-bottom:18px;color:var(--muted);font-size:10px;letter-spacing:.18em}
 .mission i{color:var(--cyan);font-style:normal}
-.target{font:600 clamp(23px,3vw,36px)/1.65 monospace;word-break:break-all;text-align:center;min-height:120px}
+.target{font:600 clamp(22px,2.7vw,34px)/1.55 monospace;word-break:break-all;text-align:center;min-height:82px}
 .target .done{color:#aab5ae}
 .target .current{color:#10200c;background:#b9eb36;box-shadow:0 7px 22px #8cb22145}
 .target .pending{color:#243129}
-.progress{height:3px;background:#e2e8e4;margin:20px 0 18px}
+.progress{height:3px;background:#e2e8e4;margin:12px 0}
 .progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),#a9dc24)}
 .next-key{text-align:center;color:var(--muted);font-size:10px;letter-spacing:.15em}
 .next-key kbd{margin-left:8px;color:#699000;border:1px solid #b9c5bd;padding:5px 8px;background:#f5f8f5}
-.end-button{display:block;margin:24px auto 0;padding:9px 18px;border:1px solid #c7d0ca;background:#fff;color:#65726b;font-size:9px;font-weight:800;letter-spacing:.14em;cursor:pointer}
+.next-key span{display:inline-block;margin-left:12px;color:#087f75;font-weight:800}
+.keyboard-guide{width:min(720px,100%);margin:14px auto 0;display:grid;gap:5px}
+.key-row{display:flex;justify-content:center;gap:4px}
+.guide-key{height:27px;min-width:32px;padding:0 5px;border:1px solid #ccd6cf;border-bottom-width:2px;border-radius:4px;background:#f8faf8;color:#738078;display:grid;place-items:center;font:700 10px monospace;transition:.12s}
+.guide-key.wide{min-width:180px}.guide-key.active{color:#17210f;background:#b9eb36;border-color:#86ad1f;transform:translateY(-2px);box-shadow:0 5px 12px #789b2738}
+.finger-legend{display:flex;justify-content:center;gap:7px;margin-top:6px;color:#87928c;font-size:8px;letter-spacing:.06em}
+.finger-legend span{padding:3px 6px;border-radius:9px;background:#f0f4f1}.finger-legend .active{color:#087f75;background:#ddf5f1;font-weight:800}
+.end-button{display:block;margin:12px auto 0;padding:9px 18px;border:1px solid #c7d0ca;background:#fff;color:#65726b;font-size:9px;font-weight:800;letter-spacing:.14em;cursor:pointer}
 .end-button:hover{border-color:var(--coral);color:#b94536}
 .pause-screen{position:absolute;inset:0;z-index:4;display:grid;place-content:center;text-align:center;background:#f8fbf7ed}
 .pause-screen span,.result-label{color:#739d08;letter-spacing:.3em;font-size:10px}
@@ -76,11 +83,12 @@ body.bad .game-shell{animation:shake .11s linear;box-shadow:0 0 0 1px #f25f4b,0 
 .record span{display:none}
 .hud{padding:0 14px;grid-template-columns:1fr 1fr 1fr auto}
 .mistake-stat{padding-left:10px}
-.arena{height:410px}
+.arena{min-height:550px}
 .overlay,.playfield{padding:24px 18px}
 .levels button{min-width:0;flex:1;padding:10px 8px;text-align:center}
 .levels small{display:none}
 .target{font-size:22px}
+.guide-key{min-width:22px;height:25px;font-size:8px;padding:0 2px}.guide-key.wide{min-width:120px}.finger-legend{display:none}
 .game-footer{gap:15px}
 .game-footer span:first-child{display:none}
 footer{display:none}

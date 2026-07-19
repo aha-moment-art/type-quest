@@ -4,17 +4,42 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const LETTERS = ["flux", "orbit", "pixel", "nova", "shift", "vector", "quick", "blaze", "echo", "glitch", "tempo", "laser"];
 const SYMBOLS = ["!", "?", "@", "#", "$", "%", "&", "*", "+", "-", "=", ":", ";", "/", "_", ".", ","];
+const KEY_ROWS = ["1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./", " "];
+const SHIFT_BASE: Record<string, string> = {"!":"1","@":"2","#":"3","$":"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0","_":"-","+":"=","{":"[","}":"]","|":"\\",":":";",'"':"'","<":",",">":".","?":"/"};
+const FINGER_KEYS: Record<string, string> = {
+  "LEFT PINKY":"`1qaz", "LEFT RING":"2wsx", "LEFT MIDDLE":"3edc", "LEFT INDEX":"45rtfgvb",
+  "RIGHT INDEX":"67yuhjnm", "RIGHT MIDDLE":"8ik,", "RIGHT RING":"9ol.", "RIGHT PINKY":"0-=p[]\\;'/", "THUMB":" ",
+};
+const FINGERS = Object.keys(FINGER_KEYS);
 
-type Level = "WARM UP" | "RUSH" | "EXTREME";
+type Level = "LETTERS" | "NUMBERS" | "SYMBOLS" | "RUSH" | "EXTREME";
 type GameState = "ready" | "playing" | "paused" | "over";
+let audioContext: AudioContext | null = null;
+
+function keyBase(key: string) { return (SHIFT_BASE[key] || key).toLowerCase(); }
+function fingerFor(key: string) { const base = keyBase(key); return FINGERS.find((name) => FINGER_KEYS[name].includes(base)) || "RIGHT PINKY"; }
+function playSound(kind: "key" | "error") {
+  audioContext ||= new AudioContext();
+  if (audioContext.state === "suspended") void audioContext.resume();
+  const now = audioContext.currentTime;
+  if (kind === "error") {
+    [0, .09].forEach((delay, i) => { const osc = audioContext!.createOscillator(); const gain = audioContext!.createGain(); osc.type = "square"; osc.frequency.value = i ? 145 : 190; gain.gain.setValueAtTime(.07, now + delay); gain.gain.exponentialRampToValueAtTime(.001, now + delay + .08); osc.connect(gain).connect(audioContext!.destination); osc.start(now + delay); osc.stop(now + delay + .09); });
+    return;
+  }
+  const length = Math.floor(audioContext.sampleRate * .025); const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate); const data = buffer.getChannelData(0);
+  for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+  const source = audioContext.createBufferSource(); const filter = audioContext.createBiquadFilter(); const gain = audioContext.createGain(); source.buffer = buffer; filter.type = "highpass"; filter.frequency.value = 900; gain.gain.value = .12; source.connect(filter).connect(gain).connect(audioContext.destination); source.start(now);
+}
 
 function makeTarget(level: Level) {
-  const groups = level === "WARM UP" ? 4 : level === "RUSH" ? 6 : 8;
+  if (level === "LETTERS") return Array.from({ length: 8 }, () => LETTERS[Math.floor(Math.random() * LETTERS.length)]).join(" ");
+  if (level === "NUMBERS") return Array.from({ length: 10 }, () => String(Math.floor(Math.random() * 900) + 10)).join(" ");
+  if (level === "SYMBOLS") return Array.from({ length: 12 }, () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]).join(" ");
+  const groups = level === "RUSH" ? 6 : 8;
   return Array.from({ length: groups }, (_, i) => {
     const word = LETTERS[Math.floor(Math.random() * LETTERS.length)];
-    const number = Math.floor(Math.random() * (level === "WARM UP" ? 90 : 900)) + 10;
+    const number = Math.floor(Math.random() * 900) + 10;
     const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-    if (level === "WARM UP") return i % 2 ? `${number}${symbol}` : word;
     if (level === "RUSH") return i % 2 ? `${word}${symbol}${number}` : `${number}${symbol}${word}`;
     const upper = word.split("").map((c) => Math.random() > .62 ? c.toUpperCase() : c).join("");
     return i % 2 ? `${symbol}${upper}_${number}` : `${number}${symbol}${upper}`;
@@ -37,7 +62,10 @@ export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
   const scoreRef = useRef(0);
 
-  useEffect(() => { setRecord(Number(localStorage.getItem("type-quest-record") || 0)); }, []);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setRecord(Number(localStorage.getItem("vibetyping-record") || 0)));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const accuracy = correct + mistakes ? Math.round(correct / (correct + mistakes) * 100) : 100;
   const wpm = Math.round((correct / 5) / Math.max(1 / 60, time / 60));
   const timeLabel = `${String(Math.floor(time / 60)).padStart(2, "0")}:${String(time % 60).padStart(2, "0")}`;
@@ -48,7 +76,7 @@ export default function Home() {
     setStatus("over");
     setRecord((old) => {
       const next = Math.max(old, scoreRef.current);
-      localStorage.setItem("type-quest-record", String(next));
+      localStorage.setItem("vibetyping-record", String(next));
       return next;
     });
   }, []);
@@ -68,6 +96,7 @@ export default function Home() {
   const hitKey = (key: string) => {
     if (status !== "playing" || key.length !== 1) return;
     if (key === target[index]) {
+      playSound("key");
       const nextCombo = combo + 1;
       setCorrect((v) => v + 1); setCombo(nextCombo); setBestCombo((v) => Math.max(v, nextCombo));
       setScore((v) => v + 10 + Math.min(40, Math.floor(nextCombo / 5) * 2));
@@ -75,6 +104,7 @@ export default function Home() {
       if (index + 1 >= target.length) { setTarget(makeTarget(level)); setIndex(0); }
       else setIndex((v) => v + 1);
     } else {
+      playSound("error");
       setMistakes((v) => v + 1); setCombo(0); setScore((v) => Math.max(0, v - 5)); setFlash("bad");
     }
     window.setTimeout(() => setFlash(""), 110);
@@ -96,6 +126,9 @@ export default function Home() {
   });
 
   const chars = useMemo(() => target.split(""), [target]);
+  const nextKey = target[index] || " ";
+  const activeKey = keyBase(nextKey);
+  const activeFinger = fingerFor(nextKey);
 
   return (
     <main className={`app ${flash}`} onClick={() => inputRef.current?.focus()}>
@@ -124,8 +157,8 @@ export default function Home() {
         <div className="arena">
           <div className="grid-lines" />
           {status === "ready" && <div className="overlay intro">
-            <span className="round-badge">01</span><h2>Choose your level</h2><p>Type each character exactly as shown. Mistakes reset your combo, but practice never stops.</p>
-            <div className="levels">{(["WARM UP","RUSH","EXTREME"] as Level[]).map((item) => <button key={item} onClick={() => {setLevel(item); setTarget(makeTarget(item));}} className={level === item ? "selected" : ""}><b>{item}</b><small>{item === "WARM UP" ? "LETTERS + NUMBERS" : item === "RUSH" ? "THE FULL MIX" : "CASE-SHIFT MAYHEM"}</small></button>)}</div>
+            <span className="round-badge">01</span><h2>Choose your practice</h2><p>Start with one key family or jump into a mixed challenge. Mistakes guide you and practice never stops.</p>
+            <div className="levels">{(["LETTERS","NUMBERS","SYMBOLS","RUSH","EXTREME"] as Level[]).map((item) => <button key={item} onClick={() => {setLevel(item); setTarget(makeTarget(item));}} className={level === item ? "selected" : ""}><b>{item === "RUSH" ? "FULL MIX" : item}</b><small>{["LETTERS","NUMBERS","SYMBOLS"].includes(item) ? "WARM-UP" : item === "RUSH" ? "CHALLENGE" : "CASE-SHIFT"}</small></button>)}</div>
             <button className="start-button" onClick={start}><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
           </div>}
 
@@ -133,7 +166,11 @@ export default function Home() {
             <div className="mission"><span>CURRENT MISSION</span><i>{level} MODE</i></div>
             <div className="target" aria-live="polite">{chars.map((char, i) => <span key={`${target}-${i}`} className={i < index ? "done" : i === index ? "current" : "pending"}>{char === " " ? "·" : char}</span>)}</div>
             <div className="progress"><i style={{width: `${index / target.length * 100}%`}} /></div>
-            <div className="next-key">NEXT KEY <kbd>{target[index] === " " ? "SPACE" : target[index]}</kbd></div>
+            <div className="next-key">NEXT KEY <kbd>{nextKey === " " ? "SPACE" : nextKey}</kbd><span>{activeFinger}</span></div>
+            <div className="keyboard-guide" aria-label="Keyboard finger guide">
+              {KEY_ROWS.map((row, rowIndex) => <div className="key-row" key={rowIndex}>{row.split("").map((key) => <span key={key} className={`guide-key${key === " " ? " wide" : ""}${key === activeKey ? " active" : ""}`}>{key === " " ? "SPACE" : key.toUpperCase()}</span>)}</div>)}
+              <div className="finger-legend">{FINGERS.map((finger) => <span key={finger} className={finger === activeFinger ? "active" : ""}>{finger}</span>)}</div>
+            </div>
             <button className="end-button" onClick={finish}>END SESSION</button>
           </div>}
 

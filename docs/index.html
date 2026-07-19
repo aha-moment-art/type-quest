@@ -28,12 +28,14 @@
       <div class="arena">
         <div class="grid-lines"></div>
         <div class="overlay" id="ready">
-          <span class="round-badge">01</span><h2>Choose your level</h2>
-          <p>Type each character exactly as shown. Mistakes reset your combo, but practice never stops.</p>
+          <span class="round-badge">01</span><h2>Choose your practice</h2>
+          <p>Start with one key family or jump into a mixed challenge. Mistakes guide you and practice never stops.</p>
           <div class="levels">
-            <button data-level="WARM UP"><b>WARM UP</b><small>LETTERS + NUMBERS</small></button>
-            <button class="selected" data-level="RUSH"><b>RUSH</b><small>THE FULL MIX</small></button>
-            <button data-level="EXTREME"><b>EXTREME</b><small>CASE-SHIFT MAYHEM</small></button>
+            <button data-level="LETTERS"><b>LETTERS</b><small>WARM-UP</small></button>
+            <button data-level="NUMBERS"><b>NUMBERS</b><small>WARM-UP</small></button>
+            <button data-level="SYMBOLS"><b>SYMBOLS</b><small>WARM-UP</small></button>
+            <button class="selected" data-level="RUSH"><b>FULL MIX</b><small>CHALLENGE</small></button>
+            <button data-level="EXTREME"><b>EXTREME</b><small>CASE-SHIFT</small></button>
           </div>
           <button class="start-button" id="start"><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
         </div>
@@ -41,7 +43,8 @@
           <div class="mission"><span>CURRENT MISSION</span><i id="mode">RUSH MODE</i></div>
           <div class="target" id="target" aria-live="polite"></div>
           <div class="progress"><i id="progress"></i></div>
-          <div class="next-key">NEXT KEY <kbd id="next-key">—</kbd></div>
+          <div class="next-key">NEXT KEY <kbd id="next-key">—</kbd><span id="finger-name">—</span></div>
+          <div class="keyboard-guide" id="keyboard-guide" aria-label="Keyboard finger guide"></div>
           <button class="end-button" id="end-session">END SESSION</button>
         </div>
         <div class="pause-screen hidden" id="pause"><span>PAUSED</span><h2>Take a breath</h2><button id="resume">RESUME GAME</button></div>
