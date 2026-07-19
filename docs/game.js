@@ -1,7 +1,7 @@
 const WORDS = ["flux","orbit","pixel","nova","shift","vector","quick","blaze","echo","glitch","tempo","laser"];
 const SYMBOLS = ["!","?","@","#","$","%","&","*","+","-","=",":",";","/","_",".",","];
 const $ = (id) => document.getElementById(id);
-let level="RUSH", state="ready", target="", index=0, time=60, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, lives=3, timer;
+let level="RUSH", state="ready", target="", index=0, time=60, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, timer;
 
 function makeTarget(){
   const groups=level==="WARM UP"?4:level==="RUSH"?6:8;
@@ -20,8 +20,8 @@ function stats(){
   const wpm=Math.round((correct/5)/Math.max(1/60,(60-time)/60));
   $("time").textContent=String(time).padStart(2,"0"); $("score").textContent=score.toLocaleString(); $("combo").textContent=combo;
   $("accuracy").textContent=`${accuracy}%`; $("wpm").textContent=`${wpm} WPM`;
-  $("lives").innerHTML=[0,1,2].map(n=>`<span class="${n<lives?"alive":""}">♥</span>`).join("");
-  $("lives").setAttribute("aria-label",`${lives} lives remaining`);
+  $("mistake-count").textContent=mistakes;
+  $("mistake-count").parentElement.setAttribute("aria-label",`${mistakes} mistakes`);
   return {accuracy,wpm};
 }
 function renderTarget(){
@@ -29,7 +29,7 @@ function renderTarget(){
   $("progress").style.width=`${index/target.length*100}%`; $("next-key").textContent=target[index]===" "?"SPACE":target[index];
 }
 function start(){
-  clearInterval(timer); target=makeTarget(); index=0; time=60; score=0; combo=0; bestCombo=0; correct=0; mistakes=0; lives=3; state="playing";
+  clearInterval(timer); target=makeTarget(); index=0; time=60; score=0; combo=0; bestCombo=0; correct=0; mistakes=0; state="playing";
   $("ready").classList.add("hidden"); $("result").classList.add("hidden"); $("pause").classList.add("hidden"); $("playfield").classList.remove("hidden");
   $("mode").textContent=`${level} MODE`; renderTarget(); stats();
   timer=setInterval(()=>{time--; stats(); if(time<=0) finish();},1000);
@@ -42,8 +42,8 @@ function finish(){
 }
 function hit(key){
   if(state!=="playing"||key.length!==1)return;
-  if(key===target[index]){combo++;bestCombo=Math.max(bestCombo,combo);correct++;score+=10+Math.min(40,Math.floor(combo/5)*2);index++;document.body.classList.add("good");if(index>=target.length){target=makeTarget();index=0;lives=Math.min(3,lives+1);} }
-  else{mistakes++;combo=0;score=Math.max(0,score-5);lives--;document.body.classList.add("bad");if(lives<=0)finish();}
+  if(key===target[index]){combo++;bestCombo=Math.max(bestCombo,combo);correct++;score+=10+Math.min(40,Math.floor(combo/5)*2);index++;document.body.classList.add("good");if(index>=target.length){target=makeTarget();index=0;} }
+  else{mistakes++;combo=0;score=Math.max(0,score-5);document.body.classList.add("bad");}
   setTimeout(()=>document.body.classList.remove("good","bad"),120);renderTarget();stats();
 }
 document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.remove("selected"));button.classList.add("selected");level=button.dataset.level;$("footer-level").textContent=level;}));

@@ -32,7 +32,6 @@ export default function Home() {
   const [bestCombo, setBestCombo] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [mistakes, setMistakes] = useState(0);
-  const [lives, setLives] = useState(3);
   const [flash, setFlash] = useState<"good" | "bad" | "">("");
   const [record, setRecord] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -64,7 +63,7 @@ export default function Home() {
 
   const start = () => {
     setTarget(makeTarget(level)); setIndex(0); setTime(60); setScore(0); setCombo(0);
-    setBestCombo(0); setCorrect(0); setMistakes(0); setLives(3); setStatus("playing");
+    setBestCombo(0); setCorrect(0); setMistakes(0); setStatus("playing");
     setTimeout(() => inputRef.current?.focus(), 30);
   };
 
@@ -75,11 +74,10 @@ export default function Home() {
       setCorrect((v) => v + 1); setCombo(nextCombo); setBestCombo((v) => Math.max(v, nextCombo));
       setScore((v) => v + 10 + Math.min(40, Math.floor(nextCombo / 5) * 2));
       setFlash("good");
-      if (index + 1 >= target.length) { setTarget(makeTarget(level)); setIndex(0); setLives((v) => Math.min(3, v + 1)); }
+      if (index + 1 >= target.length) { setTarget(makeTarget(level)); setIndex(0); }
       else setIndex((v) => v + 1);
     } else {
       setMistakes((v) => v + 1); setCombo(0); setScore((v) => Math.max(0, v - 5)); setFlash("bad");
-      setLives((v) => { const next = v - 1; if (next <= 0) setTimeout(finish, 0); return Math.max(0, next); });
     }
     window.setTimeout(() => setFlash(""), 110);
   };
@@ -122,15 +120,13 @@ export default function Home() {
           <div className="stat"><span>TIME</span><strong>{String(time).padStart(2, "0")}<small>s</small></strong></div>
           <div className="stat"><span>SCORE</span><strong>{score.toLocaleString()}</strong></div>
           <div className="stat combo"><span>COMBO</span><strong>×{combo}</strong></div>
-          <div className="lives" aria-label={`${lives} lives remaining`}>
-            {[0,1,2].map((n) => <span key={n} className={n < lives ? "alive" : ""}>♥</span>)}
-          </div>
+          <div className="mistake-stat" aria-label={`${mistakes} mistakes`}><span>MISTAKES</span><strong>{mistakes}</strong></div>
         </div>
 
         <div className="arena">
           <div className="grid-lines" />
           {status === "ready" && <div className="overlay intro">
-            <span className="round-badge">01</span><h2>Choose your level</h2><p>Type each character exactly as shown. A mistake costs one energy heart.</p>
+            <span className="round-badge">01</span><h2>Choose your level</h2><p>Type each character exactly as shown. Mistakes reset your combo, but practice never stops.</p>
             <div className="levels">{(["WARM UP","RUSH","EXTREME"] as Level[]).map((item) => <button key={item} onClick={() => {setLevel(item); setTarget(makeTarget(item));}} className={level === item ? "selected" : ""}><b>{item}</b><small>{item === "WARM UP" ? "LETTERS + NUMBERS" : item === "RUSH" ? "THE FULL MIX" : "CASE-SHIFT MAYHEM"}</small></button>)}</div>
             <button className="start-button" onClick={start}><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
           </div>}
