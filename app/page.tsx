@@ -93,6 +93,14 @@ export default function Home() {
     setTimeout(() => inputRef.current?.focus(), 30);
   };
 
+  const chooseLevel = (item: Level) => {
+    setLevel(item); setTarget(makeTarget(item)); setIndex(0);
+    if (status === "playing" || status === "paused") {
+      setTime(0); setScore(0); setCombo(0); setBestCombo(0); setCorrect(0); setMistakes(0); setStatus("playing");
+    }
+    setTimeout(() => inputRef.current?.focus(), 30);
+  };
+
   const hitKey = (key: string) => {
     if (status !== "playing" || key.length !== 1) return;
     if (key === target[index]) {
@@ -153,12 +161,17 @@ export default function Home() {
           <div className="stat combo"><span>COMBO</span><strong>×{combo}</strong></div>
           <div className="mistake-stat" aria-label={`${mistakes} mistakes`}><span>MISTAKES</span><strong>{mistakes}</strong></div>
         </div>
+        <nav className="practice-bar" aria-label="Practice modules">
+          <span className="practice-label">WARM-UP</span>
+          {(["LETTERS","NUMBERS","SYMBOLS"] as Level[]).map((item) => <button key={item} onClick={() => chooseLevel(item)} className={level === item ? "selected" : ""}>{item}</button>)}
+          <i /><span className="practice-label">CHALLENGE</span>
+          {(["RUSH","EXTREME"] as Level[]).map((item) => <button key={item} onClick={() => chooseLevel(item)} className={level === item ? "selected" : ""}>{item === "RUSH" ? "FULL MIX" : item}</button>)}
+        </nav>
 
         <div className="arena">
           <div className="grid-lines" />
           {status === "ready" && <div className="overlay intro">
             <span className="round-badge">01</span><h2>Choose your practice</h2><p>Start with one key family or jump into a mixed challenge. Mistakes guide you and practice never stops.</p>
-            <div className="levels">{(["LETTERS","NUMBERS","SYMBOLS","RUSH","EXTREME"] as Level[]).map((item) => <button key={item} onClick={() => {setLevel(item); setTarget(makeTarget(item));}} className={level === item ? "selected" : ""}><b>{item === "RUSH" ? "FULL MIX" : item}</b><small>{["LETTERS","NUMBERS","SYMBOLS"].includes(item) ? "WARM-UP" : item === "RUSH" ? "CHALLENGE" : "CASE-SHIFT"}</small></button>)}</div>
             <button className="start-button" onClick={start}><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
           </div>}
 

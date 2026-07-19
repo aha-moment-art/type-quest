@@ -90,7 +90,7 @@ function hit(key){
   else{sound("error");mistakes++;combo=0;score=Math.max(0,score-5);document.body.classList.add("bad");}
   setTimeout(()=>document.body.classList.remove("good","bad"),120);renderTarget();stats();
 }
-document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.remove("selected"));button.classList.add("selected");level=button.dataset.level;$("footer-level").textContent=level;}));
+document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.toggle("selected",b.dataset.level===button.dataset.level));level=button.dataset.level;$("footer-level").textContent=level;if(state==="playing"||state==="paused")start();}));
 $("start").addEventListener("click",start); $("again").addEventListener("click",start); $("end-session").addEventListener("click",finish); $("resume").addEventListener("click",resumeGame);
 window.addEventListener("keydown",e=>{if(e.repeat)return;if(e.key==="Enter"&&(state==="ready"||state==="over")){start();return;}if(e.key==="Escape"&&state==="playing"){pauseGame();return;}if(e.key==="Escape"&&state==="paused"){resumeGame();return;}if(state==="playing"){e.preventDefault();hit(e.key);}});
 $("record").textContent=Number(localStorage.getItem("vibetyping-record")||0).toLocaleString();stats();

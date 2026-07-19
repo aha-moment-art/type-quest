@@ -25,18 +25,17 @@
         <div class="stat combo"><span>COMBO</span><strong>×<b id="combo">0</b></strong></div>
         <div class="mistake-stat" aria-label="0 mistakes"><span>MISTAKES</span><strong id="mistake-count">0</strong></div>
       </div>
+      <nav class="practice-bar" aria-label="Practice modules">
+        <span class="practice-label">WARM-UP</span>
+        <button data-level="LETTERS">LETTERS</button><button data-level="NUMBERS">NUMBERS</button><button data-level="SYMBOLS">SYMBOLS</button>
+        <i></i><span class="practice-label">CHALLENGE</span>
+        <button class="selected" data-level="RUSH">FULL MIX</button><button data-level="EXTREME">EXTREME</button>
+      </nav>
       <div class="arena">
         <div class="grid-lines"></div>
         <div class="overlay" id="ready">
           <span class="round-badge">01</span><h2>Choose your practice</h2>
           <p>Start with one key family or jump into a mixed challenge. Mistakes guide you and practice never stops.</p>
-          <div class="levels">
-            <button data-level="LETTERS"><b>LETTERS</b><small>WARM-UP</small></button>
-            <button data-level="NUMBERS"><b>NUMBERS</b><small>WARM-UP</small></button>
-            <button data-level="SYMBOLS"><b>SYMBOLS</b><small>WARM-UP</small></button>
-            <button class="selected" data-level="RUSH"><b>FULL MIX</b><small>CHALLENGE</small></button>
-            <button data-level="EXTREME"><b>EXTREME</b><small>CASE-SHIFT</small></button>
-          </div>
           <button class="start-button" id="start"><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
         </div>
         <div class="playfield hidden" id="playfield">
