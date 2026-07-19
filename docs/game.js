@@ -24,6 +24,18 @@ function stats(){
   $("mistake-count").parentElement.setAttribute("aria-label",`${mistakes} mistakes`);
   return {accuracy,wpm};
 }
+function runTimer(){
+  clearInterval(timer);
+  timer=setInterval(()=>{time++;stats();},1000);
+}
+function pauseGame(){
+  if(state!=="playing") return;
+  clearInterval(timer); state="paused"; $("pause").classList.remove("hidden");
+}
+function resumeGame(){
+  if(state!=="paused") return;
+  state="playing"; $("pause").classList.add("hidden"); runTimer();
+}
 function renderTarget(){
   $("target").innerHTML=[...target].map((c,i)=>`<span class="${i<index?"done":i===index?"current":"pending"}">${c===" "?"·":c}</span>`).join("");
   $("progress").style.width=`${index/target.length*100}%`; $("next-key").textContent=target[index]===" "?"SPACE":target[index];
@@ -32,7 +44,7 @@ function start(){
   clearInterval(timer); target=makeTarget(); index=0; time=0; score=0; combo=0; bestCombo=0; correct=0; mistakes=0; state="playing";
   $("ready").classList.add("hidden"); $("result").classList.add("hidden"); $("pause").classList.add("hidden"); $("playfield").classList.remove("hidden");
   $("mode").textContent=`${level} MODE`; renderTarget(); stats();
-  timer=setInterval(()=>{if(state==="playing"){time++;stats();}},1000);
+  runTimer();
 }
 function finish(){
   if(state==="over") return; clearInterval(timer); state="over"; const s=stats();
@@ -47,6 +59,6 @@ function hit(key){
   setTimeout(()=>document.body.classList.remove("good","bad"),120);renderTarget();stats();
 }
 document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.remove("selected"));button.classList.add("selected");level=button.dataset.level;$("footer-level").textContent=level;}));
-$("start").addEventListener("click",start); $("again").addEventListener("click",start); $("end-session").addEventListener("click",finish); $("resume").addEventListener("click",()=>{state="playing";$("pause").classList.add("hidden");});
-window.addEventListener("keydown",e=>{if(e.repeat)return;if(e.key==="Enter"&&(state==="ready"||state==="over")){start();return;}if(e.key==="Escape"&&(state==="playing"||state==="paused")){state=state==="playing"?"paused":"playing";$("pause").classList.toggle("hidden",state!=="paused");return;}if(state==="playing"){e.preventDefault();hit(e.key);}});
+$("start").addEventListener("click",start); $("again").addEventListener("click",start); $("end-session").addEventListener("click",finish); $("resume").addEventListener("click",resumeGame);
+window.addEventListener("keydown",e=>{if(e.repeat)return;if(e.key==="Enter"&&(state==="ready"||state==="over")){start();return;}if(e.key==="Escape"&&state==="playing"){pauseGame();return;}if(e.key==="Escape"&&state==="paused"){resumeGame();return;}if(state==="playing"){e.preventDefault();hit(e.key);}});
 $("record").textContent=Number(localStorage.getItem("vibetyping-record")||0).toLocaleString();stats();
