@@ -48,5 +48,5 @@ function hit(key){
 }
 document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.remove("selected"));button.classList.add("selected");level=button.dataset.level;$("footer-level").textContent=level;}));
 $("start").addEventListener("click",start); $("again").addEventListener("click",start); $("resume").addEventListener("click",()=>{state="playing";$("pause").classList.add("hidden");});
-window.addEventListener("keydown",e=>{if(e.key==="Enter"&&(state==="ready"||state==="over")){start();return;}if(e.key==="Escape"&&(state==="playing"||state==="paused")){state=state==="playing"?"paused":"playing";$("pause").classList.toggle("hidden",state!=="paused");return;}if(state==="playing"){e.preventDefault();hit(e.key);}});
+window.addEventListener("keydown",e=>{if(e.repeat)return;if(e.key==="Enter"&&(state==="ready"||state==="over")){start();return;}if(e.key==="Escape"&&(state==="playing"||state==="paused")){state=state==="playing"?"paused":"playing";$("pause").classList.toggle("hidden",state!=="paused");return;}if(state==="playing"){e.preventDefault();hit(e.key);}});
 $("record").textContent=Number(localStorage.getItem("vibetyping-record")||0).toLocaleString();stats();

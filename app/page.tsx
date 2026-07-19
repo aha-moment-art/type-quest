@@ -86,9 +86,13 @@ export default function Home() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (e.repeat) return;
       if (e.key === "Escape" && (status === "playing" || status === "paused")) {
         setStatus((s) => s === "playing" ? "paused" : "playing"); return;
       }
+      // The hidden input handles focused keyboard input through onChange.
+      // Skipping its keydown prevents one physical key from being scored twice.
+      if (e.target === inputRef.current) return;
       if (status === "playing") { e.preventDefault(); hitKey(e.key); }
     };
     window.addEventListener("keydown", handler);
