@@ -1,8 +1,7 @@
-# vinext-starter
+# VibeTyping
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A light, arcade-style typing game for practising letters, numbers, and symbols.
+Choose a level, build a combo, and chase a new high score in a 60-second run.
 
 ## Prerequisites
 

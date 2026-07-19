@@ -103,7 +103,7 @@ export default function Home() {
         onChange={(e) => { const value = e.target.value; if (value) hitKey(value.at(-1)!); e.target.value = ""; }} />
 
       <header className="topbar">
-        <a className="brand" href="#" aria-label="Type Quest home"><span className="brand-mark">TQ</span><span>TYPE QUEST<small>KEYBOARD ADVENTURE</small></span></a>
+        <a className="brand" href="#" aria-label="VibeTyping home"><span className="brand-mark">VT</span><span>VIBETYPING<small>KEYBOARD ADVENTURE</small></span></a>
         <div className="record"><span>PERSONAL BEST</span><strong>{record.toLocaleString()}</strong><i>PTS</i></div>
       </header>
 
@@ -146,7 +146,7 @@ export default function Home() {
         <div className="game-footer"><span><kbd>ESC</kbd> PAUSE / RESUME</span><span>ACCURACY <b>{accuracy}%</b></span><span>SPEED <b>{wpm} WPM</b></span></div>
       </section>
 
-      <footer><span>TYPE QUEST / 2026</span><p>SLOW IS SMOOTH. SMOOTH IS FAST.</p><span>LEVEL: {level}</span></footer>
+      <footer><span>VIBETYPING / 2026</span><p>SLOW IS SMOOTH. SMOOTH IS FAST.</p><span>LEVEL: {level}</span></footer>
     </main>
   );
 }
