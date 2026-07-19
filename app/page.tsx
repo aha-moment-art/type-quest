@@ -5,26 +5,26 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 const LETTERS = ["flux", "orbit", "pixel", "nova", "shift", "vector", "quick", "blaze", "echo", "glitch", "tempo", "laser"];
 const SYMBOLS = ["!", "?", "@", "#", "$", "%", "&", "*", "+", "-", "=", ":", ";", "/", "_", ".", ","];
 
-type Level = "热身" | "进阶" | "极限";
+type Level = "WARM UP" | "RUSH" | "EXTREME";
 type GameState = "ready" | "playing" | "paused" | "over";
 
 function makeTarget(level: Level) {
-  const groups = level === "热身" ? 4 : level === "进阶" ? 6 : 8;
+  const groups = level === "WARM UP" ? 4 : level === "RUSH" ? 6 : 8;
   return Array.from({ length: groups }, (_, i) => {
     const word = LETTERS[Math.floor(Math.random() * LETTERS.length)];
-    const number = Math.floor(Math.random() * (level === "热身" ? 90 : 900)) + 10;
+    const number = Math.floor(Math.random() * (level === "WARM UP" ? 90 : 900)) + 10;
     const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-    if (level === "热身") return i % 2 ? `${number}${symbol}` : word;
-    if (level === "进阶") return i % 2 ? `${word}${symbol}${number}` : `${number}${symbol}${word}`;
+    if (level === "WARM UP") return i % 2 ? `${number}${symbol}` : word;
+    if (level === "RUSH") return i % 2 ? `${word}${symbol}${number}` : `${number}${symbol}${word}`;
     const upper = word.split("").map((c) => Math.random() > .62 ? c.toUpperCase() : c).join("");
     return i % 2 ? `${symbol}${upper}_${number}` : `${number}${symbol}${upper}`;
   }).join(" ");
 }
 
 export default function Home() {
-  const [level, setLevel] = useState<Level>("进阶");
+  const [level, setLevel] = useState<Level>("RUSH");
   const [status, setStatus] = useState<GameState>("ready");
-  const [target, setTarget] = useState(() => makeTarget("进阶"));
+  const [target, setTarget] = useState(() => makeTarget("RUSH"));
   const [index, setIndex] = useState(0);
   const [time, setTime] = useState(60);
   const [score, setScore] = useState(0);
@@ -99,26 +99,26 @@ export default function Home() {
 
   return (
     <main className={`app ${flash}`} onClick={() => inputRef.current?.focus()}>
-      <input ref={inputRef} className="key-catcher" inputMode="text" aria-label="打字输入区"
+      <input ref={inputRef} className="key-catcher" inputMode="text" aria-label="Typing input"
         onChange={(e) => { const value = e.target.value; if (value) hitKey(value.at(-1)!); e.target.value = ""; }} />
 
       <header className="topbar">
-        <a className="brand" href="#" aria-label="Type Quest 首页"><span className="brand-mark">TQ</span><span>TYPE QUEST<small>键盘冒险计划</small></span></a>
-        <div className="record"><span>个人纪录</span><strong>{record.toLocaleString()}</strong><i>PTS</i></div>
+        <a className="brand" href="#" aria-label="Type Quest home"><span className="brand-mark">TQ</span><span>TYPE QUEST<small>KEYBOARD ADVENTURE</small></span></a>
+        <div className="record"><span>PERSONAL BEST</span><strong>{record.toLocaleString()}</strong><i>PTS</i></div>
       </header>
 
       <section className="hero">
-        <div className="eyebrow"><span /> 60 秒街机挑战 <span /></div>
-        <h1>指尖就位，<em>开始闯关</em></h1>
-        <p>字母 × 数字 × 标点混合训练。保持准确，累积连击，让每一次敲击都算数。</p>
+        <div className="eyebrow"><span /> 60 SECOND ARCADE CHALLENGE <span /></div>
+        <h1>Fingers ready. <em>Game on.</em></h1>
+        <p>Letters × numbers × symbols. Stay accurate, build your combo, and make every keystroke count.</p>
       </section>
 
-      <section className="game-shell" aria-label="打字游戏区">
+      <section className="game-shell" aria-label="Typing game">
         <div className="hud">
           <div className="stat"><span>TIME</span><strong>{String(time).padStart(2, "0")}<small>s</small></strong></div>
           <div className="stat"><span>SCORE</span><strong>{score.toLocaleString()}</strong></div>
           <div className="stat combo"><span>COMBO</span><strong>×{combo}</strong></div>
-          <div className="lives" aria-label={`剩余 ${lives} 条生命`}>
+          <div className="lives" aria-label={`${lives} lives remaining`}>
             {[0,1,2].map((n) => <span key={n} className={n < lives ? "alive" : ""}>♥</span>)}
           </div>
         </div>
@@ -126,27 +126,27 @@ export default function Home() {
         <div className="arena">
           <div className="grid-lines" />
           {status === "ready" && <div className="overlay intro">
-            <span className="round-badge">01</span><h2>选择难度，准备出发</h2><p>准确输入屏幕上的字符。输错会失去一颗能量心。</p>
-            <div className="levels">{(["热身","进阶","极限"] as Level[]).map((item) => <button key={item} onClick={() => {setLevel(item); setTarget(makeTarget(item));}} className={level === item ? "selected" : ""}><b>{item}</b><small>{item === "热身" ? "字母 + 数字" : item === "进阶" ? "完整混合" : "大小写狂潮"}</small></button>)}</div>
-            <button className="start-button" onClick={start}><span>开始挑战</span><kbd>ENTER</kbd></button>
+            <span className="round-badge">01</span><h2>Choose your level</h2><p>Type each character exactly as shown. A mistake costs one energy heart.</p>
+            <div className="levels">{(["WARM UP","RUSH","EXTREME"] as Level[]).map((item) => <button key={item} onClick={() => {setLevel(item); setTarget(makeTarget(item));}} className={level === item ? "selected" : ""}><b>{item}</b><small>{item === "WARM UP" ? "LETTERS + NUMBERS" : item === "RUSH" ? "THE FULL MIX" : "CASE-SHIFT MAYHEM"}</small></button>)}</div>
+            <button className="start-button" onClick={start}><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
           </div>}
 
           {(status === "playing" || status === "paused") && <div className="playfield">
-            <div className="mission"><span>当前任务</span><i>{level}模式</i></div>
+            <div className="mission"><span>CURRENT MISSION</span><i>{level} MODE</i></div>
             <div className="target" aria-live="polite">{chars.map((char, i) => <span key={`${target}-${i}`} className={i < index ? "done" : i === index ? "current" : "pending"}>{char === " " ? "·" : char}</span>)}</div>
             <div className="progress"><i style={{width: `${index / target.length * 100}%`}} /></div>
-            <div className="next-key">下一键 <kbd>{target[index] === " " ? "SPACE" : target[index]}</kbd></div>
+            <div className="next-key">NEXT KEY <kbd>{target[index] === " " ? "SPACE" : target[index]}</kbd></div>
           </div>}
 
-          {status === "paused" && <div className="pause-screen"><span>PAUSED</span><h2>冒险暂停</h2><button onClick={() => setStatus("playing")}>继续游戏</button></div>}
+          {status === "paused" && <div className="pause-screen"><span>PAUSED</span><h2>Take a breath</h2><button onClick={() => setStatus("playing")}>RESUME GAME</button></div>}
 
-          {status === "over" && <div className="overlay result"><span className="result-label">本局完成</span><h2>{score.toLocaleString()} <small>PTS</small></h2><div className="result-grid"><div><strong>{wpm}</strong><span>WPM</span></div><div><strong>{accuracy}%</strong><span>准确率</span></div><div><strong>×{bestCombo}</strong><span>最高连击</span></div></div><button className="start-button" onClick={start}><span>再玩一次</span><kbd>↵</kbd></button></div>}
+          {status === "over" && <div className="overlay result"><span className="result-label">RUN COMPLETE</span><h2>{score.toLocaleString()} <small>PTS</small></h2><div className="result-grid"><div><strong>{wpm}</strong><span>WPM</span></div><div><strong>{accuracy}%</strong><span>ACCURACY</span></div><div><strong>×{bestCombo}</strong><span>BEST COMBO</span></div></div><button className="start-button" onClick={start}><span>PLAY AGAIN</span><kbd>↵</kbd></button></div>}
         </div>
 
-        <div className="game-footer"><span><kbd>ESC</kbd> 暂停 / 继续</span><span>准确率 <b>{accuracy}%</b></span><span>速度 <b>{wpm} WPM</b></span></div>
+        <div className="game-footer"><span><kbd>ESC</kbd> PAUSE / RESUME</span><span>ACCURACY <b>{accuracy}%</b></span><span>SPEED <b>{wpm} WPM</b></span></div>
       </section>
 
-      <footer><span>TYPE QUEST / 2026</span><p>慢即是稳，稳即是快。</p><span>LEVEL: {level.toUpperCase()}</span></footer>
+      <footer><span>TYPE QUEST / 2026</span><p>SLOW IS SMOOTH. SMOOTH IS FAST.</p><span>LEVEL: {level}</span></footer>
     </main>
   );
 }

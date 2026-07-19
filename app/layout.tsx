@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Type Quest｜键盘冒险计划",
-  description: "字母、数字与标点混合打字挑战，在 60 秒内刷新你的速度与连击纪录。",
+  title: "Type Quest | Keyboard Adventure",
+  description: "A 60-second arcade typing challenge mixing letters, numbers, and symbols.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
