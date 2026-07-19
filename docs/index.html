@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="A 60-second arcade typing challenge mixing letters, numbers, and symbols." />
+  <meta name="description" content="An open-ended typing practice game mixing letters, numbers, and symbols." />
   <title>VibeTyping | Keyboard Adventure</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -14,13 +14,13 @@
       <div class="record"><span>PERSONAL BEST</span><strong id="record">0</strong><i>PTS</i></div>
     </header>
     <section class="hero">
-      <div class="eyebrow"><span></span>60 SECOND ARCADE CHALLENGE<span></span></div>
+      <div class="eyebrow"><span></span>OPEN-ENDED PRACTICE SESSION<span></span></div>
       <h1>Fingers ready. <em>Game on.</em></h1>
       <p>Letters × numbers × symbols. Stay accurate, build your combo, and make every keystroke count.</p>
     </section>
     <section class="game-shell" aria-label="Typing game">
       <div class="hud">
-        <div class="stat"><span>TIME</span><strong><b id="time">60</b><small>s</small></strong></div>
+        <div class="stat"><span>ELAPSED</span><strong><b id="time">00:00</b></strong></div>
         <div class="stat"><span>SCORE</span><strong id="score">0</strong></div>
         <div class="stat combo"><span>COMBO</span><strong>×<b id="combo">0</b></strong></div>
         <div class="mistake-stat" aria-label="0 mistakes"><span>MISTAKES</span><strong id="mistake-count">0</strong></div>
@@ -42,6 +42,7 @@
           <div class="target" id="target" aria-live="polite"></div>
           <div class="progress"><i id="progress"></i></div>
           <div class="next-key">NEXT KEY <kbd id="next-key">—</kbd></div>
+          <button class="end-button" id="end-session">END SESSION</button>
         </div>
         <div class="pause-screen hidden" id="pause"><span>PAUSED</span><h2>Take a breath</h2><button id="resume">RESUME GAME</button></div>
         <div class="overlay result hidden" id="result"><span class="result-label">RUN COMPLETE</span><h2><b id="final-score">0</b> <small>PTS</small></h2><div class="result-grid"><div><strong id="final-wpm">0</strong><span>WPM</span></div><div><strong id="final-accuracy">100%</strong><span>ACCURACY</span></div><div><strong id="final-combo">×0</strong><span>BEST COMBO</span></div></div><button class="start-button" id="again"><span>PLAY AGAIN</span><kbd>↵</kbd></button></div>

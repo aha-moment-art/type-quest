@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "VibeTyping | Keyboard Adventure",
-  description: "A 60-second arcade typing challenge mixing letters, numbers, and symbols.",
+  description: "An open-ended typing practice game mixing letters, numbers, and symbols.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

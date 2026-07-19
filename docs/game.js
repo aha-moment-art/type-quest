@@ -1,7 +1,7 @@
 const WORDS = ["flux","orbit","pixel","nova","shift","vector","quick","blaze","echo","glitch","tempo","laser"];
 const SYMBOLS = ["!","?","@","#","$","%","&","*","+","-","=",":",";","/","_",".",","];
 const $ = (id) => document.getElementById(id);
-let level="RUSH", state="ready", target="", index=0, time=60, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, timer;
+let level="RUSH", state="ready", target="", index=0, time=0, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, timer;
 
 function makeTarget(){
   const groups=level==="WARM UP"?4:level==="RUSH"?6:8;
@@ -17,8 +17,8 @@ function makeTarget(){
 }
 function stats(){
   const accuracy=correct+mistakes?Math.round(correct/(correct+mistakes)*100):100;
-  const wpm=Math.round((correct/5)/Math.max(1/60,(60-time)/60));
-  $("time").textContent=String(time).padStart(2,"0"); $("score").textContent=score.toLocaleString(); $("combo").textContent=combo;
+  const wpm=Math.round((correct/5)/Math.max(1/60,time/60));
+  $("time").textContent=`${String(Math.floor(time/60)).padStart(2,"0")}:${String(time%60).padStart(2,"0")}`; $("score").textContent=score.toLocaleString(); $("combo").textContent=combo;
   $("accuracy").textContent=`${accuracy}%`; $("wpm").textContent=`${wpm} WPM`;
   $("mistake-count").textContent=mistakes;
   $("mistake-count").parentElement.setAttribute("aria-label",`${mistakes} mistakes`);
@@ -29,10 +29,10 @@ function renderTarget(){
   $("progress").style.width=`${index/target.length*100}%`; $("next-key").textContent=target[index]===" "?"SPACE":target[index];
 }
 function start(){
-  clearInterval(timer); target=makeTarget(); index=0; time=60; score=0; combo=0; bestCombo=0; correct=0; mistakes=0; state="playing";
+  clearInterval(timer); target=makeTarget(); index=0; time=0; score=0; combo=0; bestCombo=0; correct=0; mistakes=0; state="playing";
   $("ready").classList.add("hidden"); $("result").classList.add("hidden"); $("pause").classList.add("hidden"); $("playfield").classList.remove("hidden");
   $("mode").textContent=`${level} MODE`; renderTarget(); stats();
-  timer=setInterval(()=>{time--; stats(); if(time<=0) finish();},1000);
+  timer=setInterval(()=>{if(state==="playing"){time++;stats();}},1000);
 }
 function finish(){
   if(state==="over") return; clearInterval(timer); state="over"; const s=stats();
@@ -47,6 +47,6 @@ function hit(key){
   setTimeout(()=>document.body.classList.remove("good","bad"),120);renderTarget();stats();
 }
 document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.remove("selected"));button.classList.add("selected");level=button.dataset.level;$("footer-level").textContent=level;}));
-$("start").addEventListener("click",start); $("again").addEventListener("click",start); $("resume").addEventListener("click",()=>{state="playing";$("pause").classList.add("hidden");});
+$("start").addEventListener("click",start); $("again").addEventListener("click",start); $("end-session").addEventListener("click",finish); $("resume").addEventListener("click",()=>{state="playing";$("pause").classList.add("hidden");});
 window.addEventListener("keydown",e=>{if(e.repeat)return;if(e.key==="Enter"&&(state==="ready"||state==="over")){start();return;}if(e.key==="Escape"&&(state==="playing"||state==="paused")){state=state==="playing"?"paused":"playing";$("pause").classList.toggle("hidden",state!=="paused");return;}if(state==="playing"){e.preventDefault();hit(e.key);}});
 $("record").textContent=Number(localStorage.getItem("vibetyping-record")||0).toLocaleString();stats();

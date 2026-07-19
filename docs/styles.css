@@ -50,6 +50,8 @@ h1 em{color:#79a600;font-style:normal}
 .progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),#a9dc24)}
 .next-key{text-align:center;color:var(--muted);font-size:10px;letter-spacing:.15em}
 .next-key kbd{margin-left:8px;color:#699000;border:1px solid #b9c5bd;padding:5px 8px;background:#f5f8f5}
+.end-button{display:block;margin:24px auto 0;padding:9px 18px;border:1px solid #c7d0ca;background:#fff;color:#65726b;font-size:9px;font-weight:800;letter-spacing:.14em;cursor:pointer}
+.end-button:hover{border-color:var(--coral);color:#b94536}
 .pause-screen{position:absolute;inset:0;z-index:4;display:grid;place-content:center;text-align:center;background:#f8fbf7ed}
 .pause-screen span,.result-label{color:#739d08;letter-spacing:.3em;font-size:10px}
 .pause-screen button{background:#fff;border:1px solid #8ab315;color:#668900;padding:10px 28px}

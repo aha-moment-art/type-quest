@@ -26,7 +26,7 @@ export default function Home() {
   const [status, setStatus] = useState<GameState>("ready");
   const [target, setTarget] = useState(() => makeTarget("RUSH"));
   const [index, setIndex] = useState(0);
-  const [time, setTime] = useState(60);
+  const [time, setTime] = useState(0);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [bestCombo, setBestCombo] = useState(0);
@@ -39,7 +39,8 @@ export default function Home() {
 
   useEffect(() => { setRecord(Number(localStorage.getItem("type-quest-record") || 0)); }, []);
   const accuracy = correct + mistakes ? Math.round(correct / (correct + mistakes) * 100) : 100;
-  const wpm = Math.round((correct / 5) / Math.max(1 / 60, (60 - time) / 60));
+  const wpm = Math.round((correct / 5) / Math.max(1 / 60, time / 60));
+  const timeLabel = `${String(Math.floor(time / 60)).padStart(2, "0")}:${String(time % 60).padStart(2, "0")}`;
 
   useEffect(() => { scoreRef.current = score; }, [score]);
 
@@ -54,15 +55,12 @@ export default function Home() {
 
   useEffect(() => {
     if (status !== "playing") return;
-    const timer = window.setInterval(() => setTime((t) => {
-      if (t <= 1) { window.clearInterval(timer); setTimeout(finish, 0); return 0; }
-      return t - 1;
-    }), 1000);
+    const timer = window.setInterval(() => setTime((t) => t + 1), 1000);
     return () => window.clearInterval(timer);
   }, [status, finish]);
 
   const start = () => {
-    setTarget(makeTarget(level)); setIndex(0); setTime(60); setScore(0); setCombo(0);
+    setTarget(makeTarget(level)); setIndex(0); setTime(0); setScore(0); setCombo(0);
     setBestCombo(0); setCorrect(0); setMistakes(0); setStatus("playing");
     setTimeout(() => inputRef.current?.focus(), 30);
   };
@@ -110,14 +108,14 @@ export default function Home() {
       </header>
 
       <section className="hero">
-        <div className="eyebrow"><span /> 60 SECOND ARCADE CHALLENGE <span /></div>
+        <div className="eyebrow"><span /> OPEN-ENDED PRACTICE SESSION <span /></div>
         <h1>Fingers ready. <em>Game on.</em></h1>
         <p>Letters × numbers × symbols. Stay accurate, build your combo, and make every keystroke count.</p>
       </section>
 
       <section className="game-shell" aria-label="Typing game">
         <div className="hud">
-          <div className="stat"><span>TIME</span><strong>{String(time).padStart(2, "0")}<small>s</small></strong></div>
+          <div className="stat"><span>ELAPSED</span><strong>{timeLabel}</strong></div>
           <div className="stat"><span>SCORE</span><strong>{score.toLocaleString()}</strong></div>
           <div className="stat combo"><span>COMBO</span><strong>×{combo}</strong></div>
           <div className="mistake-stat" aria-label={`${mistakes} mistakes`}><span>MISTAKES</span><strong>{mistakes}</strong></div>
@@ -136,6 +134,7 @@ export default function Home() {
             <div className="target" aria-live="polite">{chars.map((char, i) => <span key={`${target}-${i}`} className={i < index ? "done" : i === index ? "current" : "pending"}>{char === " " ? "·" : char}</span>)}</div>
             <div className="progress"><i style={{width: `${index / target.length * 100}%`}} /></div>
             <div className="next-key">NEXT KEY <kbd>{target[index] === " " ? "SPACE" : target[index]}</kbd></div>
+            <button className="end-button" onClick={finish}>END SESSION</button>
           </div>}
 
           {status === "paused" && <div className="pause-screen"><span>PAUSED</span><h2>Take a breath</h2><button onClick={() => setStatus("playing")}>RESUME GAME</button></div>}

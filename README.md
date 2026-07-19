@@ -1,7 +1,7 @@
 # VibeTyping
 
 A light, arcade-style typing game for practising letters, numbers, and symbols.
-Choose a level, build a combo, and chase a new high score in a 60-second run.
+Choose a level, build a combo, and practise for as long as you like.
 
 ## Prerequisites
 
