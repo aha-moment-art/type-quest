@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A 60-second arcade typing challenge mixing letters, numbers, and symbols." />
+  <title>VibeTyping | Keyboard Adventure</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar">
+      <a class="brand" href="#"><span class="brand-mark">VT</span><span>VIBETYPING<small>KEYBOARD ADVENTURE</small></span></a>
+      <div class="record"><span>PERSONAL BEST</span><strong id="record">0</strong><i>PTS</i></div>
+    </header>
+    <section class="hero">
+      <div class="eyebrow"><span></span>60 SECOND ARCADE CHALLENGE<span></span></div>
+      <h1>Fingers ready. <em>Game on.</em></h1>
+      <p>Letters × numbers × symbols. Stay accurate, build your combo, and make every keystroke count.</p>
+    </section>
+    <section class="game-shell" aria-label="Typing game">
+      <div class="hud">
+        <div class="stat"><span>TIME</span><strong><b id="time">60</b><small>s</small></strong></div>
+        <div class="stat"><span>SCORE</span><strong id="score">0</strong></div>
+        <div class="stat combo"><span>COMBO</span><strong>×<b id="combo">0</b></strong></div>
+        <div class="lives" id="lives" aria-label="3 lives remaining"></div>
+      </div>
+      <div class="arena">
+        <div class="grid-lines"></div>
+        <div class="overlay" id="ready">
+          <span class="round-badge">01</span><h2>Choose your level</h2>
+          <p>Type each character exactly as shown. A mistake costs one energy heart.</p>
+          <div class="levels">
+            <button data-level="WARM UP"><b>WARM UP</b><small>LETTERS + NUMBERS</small></button>
+            <button class="selected" data-level="RUSH"><b>RUSH</b><small>THE FULL MIX</small></button>
+            <button data-level="EXTREME"><b>EXTREME</b><small>CASE-SHIFT MAYHEM</small></button>
+          </div>
+          <button class="start-button" id="start"><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
+        </div>
+        <div class="playfield hidden" id="playfield">
+          <div class="mission"><span>CURRENT MISSION</span><i id="mode">RUSH MODE</i></div>
+          <div class="target" id="target" aria-live="polite"></div>
+          <div class="progress"><i id="progress"></i></div>
+          <div class="next-key">NEXT KEY <kbd id="next-key">—</kbd></div>
+        </div>
+        <div class="pause-screen hidden" id="pause"><span>PAUSED</span><h2>Take a breath</h2><button id="resume">RESUME GAME</button></div>
+        <div class="overlay result hidden" id="result"><span class="result-label">RUN COMPLETE</span><h2><b id="final-score">0</b> <small>PTS</small></h2><div class="result-grid"><div><strong id="final-wpm">0</strong><span>WPM</span></div><div><strong id="final-accuracy">100%</strong><span>ACCURACY</span></div><div><strong id="final-combo">×0</strong><span>BEST COMBO</span></div></div><button class="start-button" id="again"><span>PLAY AGAIN</span><kbd>↵</kbd></button></div>
+      </div>
+      <div class="game-footer"><span><kbd>ESC</kbd> PAUSE / RESUME</span><span>ACCURACY <b id="accuracy">100%</b></span><span>SPEED <b id="wpm">0 WPM</b></span></div>
+    </section>
+    <footer><span>VIBETYPING / 2026</span><p>SLOW IS SMOOTH. SMOOTH IS FAST.</p><span>LEVEL: <b id="footer-level">RUSH</b></span></footer>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
