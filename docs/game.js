@@ -10,11 +10,15 @@ const FINGERS = Object.keys(FINGER_KEYS);
 const LEFT_FINGERS = ["LEFT PINKY","LEFT RING","LEFT MIDDLE","LEFT INDEX","THUMB"];
 const RIGHT_FINGERS = ["THUMB","RIGHT INDEX","RIGHT MIDDLE","RIGHT RING","RIGHT PINKY"];
 const $ = (id) => document.getElementById(id);
-let level="RUSH", state="ready", target="", index=0, time=0, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, timer;
+let level="RUSH", state="ready", target="", index=0, time=0, score=0, combo=0, bestCombo=0, correct=0, mistakes=0, timer, flashTimer;
 let audioContext;
 
 function keyBase(key){return (SHIFT_BASE[key]||key).toLowerCase();}
 function fingerFor(key){const base=keyBase(key);return FINGERS.find(name=>FINGER_KEYS[name].includes(base))||"RIGHT PINKY";}
+function needsShift(key){return /^[A-Z]$/.test(key)||Object.hasOwn(SHIFT_BASE,key);}
+function levelName(value){return value==="RUSH"?"FULL MIX":value;}
+function readRecord(){try{return Number(localStorage.getItem("vibetyping-record")||0);}catch{return 0;}}
+function writeRecord(value){try{localStorage.setItem("vibetyping-record",String(value));}catch{}}
 function sound(kind){
   audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
   if(audioContext.state==="suspended") audioContext.resume();
@@ -29,10 +33,12 @@ function sound(kind){
 }
 
 function renderKeyboard(){
-  const active=keyBase(target[index]||" "), finger=fingerFor(target[index]||" ");
-  const hand=(side,names)=>`<div class="hand ${side}"><div class="palm"><b>${side.toUpperCase()} HAND</b></div>${names.map((name,i)=>`<span class="finger finger-${i+1}${name===finger?" active":""}" title="${name}"><i>${name.includes("PINKY")?"P":name.includes("RING")?"R":name.includes("MIDDLE")?"M":name.includes("INDEX")?"I":"T"}</i></span>`).join("")}</div>`;
-  $("keyboard-guide").innerHTML=`<div class="keyboard-case">${KEY_ROWS.map((row,rowIndex)=>`<div class="key-row row-${rowIndex+1}">${[...row].map(key=>`<span class="guide-key${key===" "?" wide":""}${key===active?" active":""}">${key===" "?"SPACE":key.toUpperCase()}</span>`).join("")}</div>`).join("")}</div><div class="hands-layer">${hand("left",LEFT_FINGERS)}${hand("right",RIGHT_FINGERS)}</div>`;
-  $("finger-name").textContent=finger;
+  const next=target[index]||" ",active=keyBase(next),finger=fingerFor(next),shift=needsShift(next),shiftSide=finger.startsWith("LEFT")?"RIGHT":"LEFT";
+  const activeFingers=[finger,...(shift?[`${shiftSide} PINKY`]:[])];
+  const hand=(side,names)=>`<div class="hand ${side}"><div class="palm"><b>${side.toUpperCase()} HAND</b></div>${names.map((name,i)=>`<span class="finger finger-${i+1}${activeFingers.includes(name)?" active":""}" title="${name}"><i>${name.includes("PINKY")?"P":name.includes("RING")?"R":name.includes("MIDDLE")?"M":name.includes("INDEX")?"I":"T"}</i></span>`).join("")}</div>`;
+  const rows=KEY_ROWS.map((row,rowIndex)=>rowIndex===4?`<div class="key-row row-5 modifier-row"><span class="guide-key shift-key${shift&&shiftSide==="LEFT"?" active":""}">SHIFT</span><span class="guide-key wide${active===" "?" active":""}">SPACE</span><span class="guide-key shift-key${shift&&shiftSide==="RIGHT"?" active":""}">SHIFT</span></div>`:`<div class="key-row row-${rowIndex+1}">${[...row].map(key=>`<span class="guide-key${key===active?" active":""}">${key.toUpperCase()}</span>`).join("")}</div>`).join("");
+  $("keyboard-guide").innerHTML=`<div class="keyboard-case">${rows}</div><div class="hands-layer">${hand("left",LEFT_FINGERS)}${hand("right",RIGHT_FINGERS)}</div>`;
+  $("finger-name").textContent=shift?`${finger} + ${shiftSide} PINKY (SHIFT)`:finger;
 }
 
 function makeTarget(){
@@ -78,12 +84,12 @@ function renderTarget(){
 function start(){
   clearInterval(timer); target=makeTarget(); index=0; time=0; score=0; combo=0; bestCombo=0; correct=0; mistakes=0; state="playing";
   $("ready").classList.add("hidden"); $("result").classList.add("hidden"); $("pause").classList.add("hidden"); $("playfield").classList.remove("hidden");
-  $("mode").textContent=`${level} MODE`; renderTarget(); stats();
+  $("mode").textContent=`${levelName(level)} MODE`; renderTarget(); stats();
   runTimer();
 }
 function finish(){
   if(state==="over") return; clearInterval(timer); state="over"; const s=stats();
-  const record=Math.max(Number(localStorage.getItem("vibetyping-record")||0),score); localStorage.setItem("vibetyping-record",record); $("record").textContent=record.toLocaleString();
+  const record=Math.max(readRecord(),score); writeRecord(record); $("record").textContent=record.toLocaleString();
   $("playfield").classList.add("hidden"); $("pause").classList.add("hidden"); $("result").classList.remove("hidden");
   $("final-score").textContent=score.toLocaleString(); $("final-wpm").textContent=s.wpm; $("final-accuracy").textContent=`${s.accuracy}%`; $("final-combo").textContent=`×${bestCombo}`;
 }
@@ -91,9 +97,9 @@ function hit(key){
   if(state!=="playing"||key.length!==1)return;
   if(key===target[index]){sound("key");combo++;bestCombo=Math.max(bestCombo,combo);correct++;score+=10+Math.min(40,Math.floor(combo/5)*2);index++;document.body.classList.add("good");if(index>=target.length){target=makeTarget();index=0;} }
   else{sound("error");mistakes++;combo=0;score=Math.max(0,score-5);document.body.classList.add("bad");}
-  setTimeout(()=>document.body.classList.remove("good","bad"),120);renderTarget();stats();
+  clearTimeout(flashTimer);flashTimer=setTimeout(()=>document.body.classList.remove("good","bad"),120);renderTarget();stats();
 }
-document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.toggle("selected",b.dataset.level===button.dataset.level));level=button.dataset.level;$("footer-level").textContent=level;if(state==="playing"||state==="paused")start();}));
+document.querySelectorAll("[data-level]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-level]").forEach(b=>b.classList.toggle("selected",b.dataset.level===button.dataset.level));level=button.dataset.level;$("footer-level").textContent=levelName(level);if(state==="playing"||state==="paused")start();}));
 $("start").addEventListener("click",start); $("again").addEventListener("click",start); $("end-session").addEventListener("click",finish); $("resume").addEventListener("click",resumeGame);
 window.addEventListener("keydown",e=>{if(e.repeat)return;if(e.key==="Enter"&&(state==="ready"||state==="over")){start();return;}if(e.key==="Escape"&&state==="playing"){pauseGame();return;}if(e.key==="Escape"&&state==="paused"){resumeGame();return;}if(state==="playing"){e.preventDefault();hit(e.key);}});
-$("record").textContent=Number(localStorage.getItem("vibetyping-record")||0).toLocaleString();stats();
+$("record").textContent=readRecord().toLocaleString();stats();

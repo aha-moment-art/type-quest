@@ -20,6 +20,10 @@ let audioContext: AudioContext | null = null;
 
 function keyBase(key: string) { return (SHIFT_BASE[key] || key).toLowerCase(); }
 function fingerFor(key: string) { const base = keyBase(key); return FINGERS.find((name) => FINGER_KEYS[name].includes(base)) || "RIGHT PINKY"; }
+function needsShift(key: string) { return /^[A-Z]$/.test(key) || Object.hasOwn(SHIFT_BASE, key); }
+function levelName(level: Level) { return level === "RUSH" ? "FULL MIX" : level; }
+function readRecord() { try { return Number(localStorage.getItem("vibetyping-record") || 0); } catch { return 0; } }
+function writeRecord(value: number) { try { localStorage.setItem("vibetyping-record", String(value)); } catch {} }
 function playSound(kind: "key" | "error") {
   audioContext ||= new AudioContext();
   if (audioContext.state === "suspended") void audioContext.resume();
@@ -33,9 +37,9 @@ function playSound(kind: "key" | "error") {
   const source = audioContext.createBufferSource(); const filter = audioContext.createBiquadFilter(); const gain = audioContext.createGain(); source.buffer = buffer; filter.type = "highpass"; filter.frequency.value = 900; gain.gain.value = .12; source.connect(filter).connect(gain).connect(audioContext.destination); source.start(now);
 }
 
-function HandGuide({ side, names, activeFinger }: { side: "left" | "right"; names: string[]; activeFinger: string }) {
+function HandGuide({ side, names, activeFingers }: { side: "left" | "right"; names: string[]; activeFingers: string[] }) {
   const initial = (name: string) => name.includes("PINKY") ? "P" : name.includes("RING") ? "R" : name.includes("MIDDLE") ? "M" : name.includes("INDEX") ? "I" : "T";
-  return <div className={`hand ${side}`}><div className="palm"><b>{side.toUpperCase()} HAND</b></div>{names.map((name, i) => <span key={name} className={`finger finger-${i + 1}${name === activeFinger ? " active" : ""}`} title={name}><i>{initial(name)}</i></span>)}</div>;
+  return <div className={`hand ${side}`}><div className="palm"><b>{side.toUpperCase()} HAND</b></div>{names.map((name, i) => <span key={name} className={`finger finger-${i + 1}${activeFingers.includes(name) ? " active" : ""}`} title={name}><i>{initial(name)}</i></span>)}</div>;
 }
 
 function makeTarget(level: Level) {
@@ -68,9 +72,10 @@ export default function Home() {
   const [record, setRecord] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const scoreRef = useRef(0);
+  const flashTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setRecord(Number(localStorage.getItem("vibetyping-record") || 0)));
+    const frame = requestAnimationFrame(() => setRecord(readRecord()));
     return () => cancelAnimationFrame(frame);
   }, []);
   const accuracy = correct + mistakes ? Math.round(correct / (correct + mistakes) * 100) : 100;
@@ -83,7 +88,7 @@ export default function Home() {
     setStatus("over");
     setRecord((old) => {
       const next = Math.max(old, scoreRef.current);
-      localStorage.setItem("vibetyping-record", String(next));
+      writeRecord(next);
       return next;
     });
   }, []);
@@ -122,7 +127,8 @@ export default function Home() {
       playSound("error");
       setMistakes((v) => v + 1); setCombo(0); setScore((v) => Math.max(0, v - 5)); setFlash("bad");
     }
-    window.setTimeout(() => setFlash(""), 110);
+    if (flashTimerRef.current !== null) window.clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = window.setTimeout(() => setFlash(""), 110);
   };
 
   useEffect(() => {
@@ -144,6 +150,10 @@ export default function Home() {
   const nextKey = target[index] || " ";
   const activeKey = keyBase(nextKey);
   const activeFinger = fingerFor(nextKey);
+  const shiftRequired = needsShift(nextKey);
+  const shiftSide = activeFinger.startsWith("LEFT") ? "RIGHT" : "LEFT";
+  const activeFingers = [activeFinger, ...(shiftRequired ? [`${shiftSide} PINKY`] : [])];
+  const fingerLabel = shiftRequired ? `${activeFinger} + ${shiftSide} PINKY (SHIFT)` : activeFinger;
 
   return (
     <main className={`app ${flash}`} onClick={() => inputRef.current?.focus()}>
@@ -183,13 +193,13 @@ export default function Home() {
           </div>}
 
           {(status === "playing" || status === "paused") && <div className="playfield">
-            <div className="mission"><span>CURRENT MISSION</span><i>{level} MODE</i></div>
-            <div className="target" aria-live="polite">{chars.map((char, i) => <span key={`${target}-${i}`} className={i < index ? "done" : i === index ? "current" : "pending"}>{char === " " ? "·" : char}</span>)}</div>
+            <div className="mission"><span>CURRENT MISSION</span><i>{levelName(level)} MODE</i></div>
+            <div className="target" aria-label="Typing target">{chars.map((char, i) => <span key={`${target}-${i}`} className={i < index ? "done" : i === index ? "current" : "pending"}>{char === " " ? "·" : char}</span>)}</div>
             <div className="progress"><i style={{width: `${index / target.length * 100}%`}} /></div>
-            <div className="next-key">NEXT KEY <kbd>{nextKey === " " ? "SPACE" : nextKey}</kbd><span>{activeFinger}</span></div>
+            <div className="next-key">NEXT KEY <kbd>{nextKey === " " ? "SPACE" : nextKey}</kbd><span>{fingerLabel}</span></div>
             <div className="keyboard-guide" aria-label="Keyboard finger guide">
-              <div className="keyboard-case">{KEY_ROWS.map((row, rowIndex) => <div className={`key-row row-${rowIndex + 1}`} key={rowIndex}>{row.split("").map((key) => <span key={key} className={`guide-key${key === " " ? " wide" : ""}${key === activeKey ? " active" : ""}`}>{key === " " ? "SPACE" : key.toUpperCase()}</span>)}</div>)}</div>
-              <div className="hands-layer"><HandGuide side="left" names={LEFT_FINGERS} activeFinger={activeFinger} /><HandGuide side="right" names={RIGHT_FINGERS} activeFinger={activeFinger} /></div>
+              <div className="keyboard-case">{KEY_ROWS.map((row, rowIndex) => rowIndex === 4 ? <div className="key-row row-5 modifier-row" key={rowIndex}><span className={`guide-key shift-key${shiftRequired && shiftSide === "LEFT" ? " active" : ""}`}>SHIFT</span><span className={`guide-key wide${activeKey === " " ? " active" : ""}`}>SPACE</span><span className={`guide-key shift-key${shiftRequired && shiftSide === "RIGHT" ? " active" : ""}`}>SHIFT</span></div> : <div className={`key-row row-${rowIndex + 1}`} key={rowIndex}>{row.split("").map((key) => <span key={key} className={`guide-key${key === activeKey ? " active" : ""}`}>{key.toUpperCase()}</span>)}</div>)}</div>
+              <div className="hands-layer"><HandGuide side="left" names={LEFT_FINGERS} activeFingers={activeFingers} /><HandGuide side="right" names={RIGHT_FINGERS} activeFingers={activeFingers} /></div>
             </div>
             <button className="end-button" onClick={finish}>END SESSION</button>
           </div>}
@@ -202,7 +212,7 @@ export default function Home() {
         <div className="game-footer"><span><kbd>ESC</kbd> PAUSE / RESUME</span><span>ACCURACY <b>{accuracy}%</b></span><span>SPEED <b>{wpm} WPM</b></span></div>
       </section>
 
-      <footer><span>VIBETYPING / 2026</span><p>SLOW IS SMOOTH. SMOOTH IS FAST.</p><span>LEVEL: {level}</span></footer>
+      <footer><span>VIBETYPING / 2026</span><p>SLOW IS SMOOTH. SMOOTH IS FAST.</p><span>LEVEL: {levelName(level)}</span></footer>
     </main>
   );
 }
