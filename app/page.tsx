@@ -3,6 +3,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const LETTERS = ["flux", "orbit", "pixel", "nova", "shift", "vector", "quick", "blaze", "echo", "glitch", "tempo", "laser"];
+const VOCABULARY = {
+  IELTS: [
+    ["abundant", "丰富的；充足的"], ["accurate", "准确的；精确的"], ["allocate", "分配；拨给"], ["alter", "改变；更改"],
+    ["ambiguous", "模棱两可的"], ["analyse", "分析"], ["apparent", "显而易见的"], ["approach", "方法；接近"],
+    ["assess", "评估；评价"], ["coherent", "连贯的；一致的"], ["compensate", "补偿；弥补"], ["consecutive", "连续的"],
+    ["considerable", "相当大的"], ["decline", "下降；衰退"], ["demonstrate", "证明；展示"], ["deteriorate", "恶化"],
+    ["diverse", "多样的"], ["enhance", "提高；增强"], ["feasible", "可行的"], ["fluctuate", "波动"],
+    ["inevitable", "不可避免的"], ["infrastructure", "基础设施"], ["interpret", "解释；理解"], ["predominant", "占主导地位的"],
+    ["significant", "重要的；显著的"], ["sustainable", "可持续的"], ["transform", "转变；改造"], ["whereas", "然而；鉴于"],
+  ],
+  TOEFL: [
+    ["abandon", "放弃；抛弃"], ["accumulate", "积累；聚集"], ["adjacent", "邻近的"], ["advocate", "提倡；拥护"],
+    ["arbitrary", "任意的；武断的"], ["attain", "达到；获得"], ["attribute", "把……归因于；属性"], ["comprehensive", "全面的"],
+    ["constrain", "限制；约束"], ["controversial", "有争议的"], ["crucial", "至关重要的"], ["derive", "获得；源自"],
+    ["discrete", "分离的；不连续的"], ["empirical", "以经验为依据的"], ["exhibit", "展示；展览品"], ["fundamental", "根本的；基础的"],
+    ["hypothesis", "假设；假说"], ["incorporate", "包含；合并"], ["inhibit", "抑制；阻止"], ["intrinsic", "固有的；内在的"],
+    ["nevertheless", "尽管如此"], ["preliminary", "初步的；预备的"], ["subsequent", "随后的"], ["synthesize", "综合；合成"],
+    ["tentative", "暂定的；试探性的"], ["undergo", "经历；承受"], ["validate", "验证；证实"], ["widespread", "广泛的"],
+  ],
+} as const;
 const SYMBOLS = ["!", "?", "@", "#", "$", "%", "&", "*", "+", "-", "=", ":", ";", "/", "_", ".", ","];
 const KEY_ROWS = ["1234567890-=", "qwertyuiop[]\\", "asdfghjkl;'", "zxcvbnm,./", " "];
 const SHIFT_BASE: Record<string, string> = {"!":"1","@":"2","#":"3","$":"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0","_":"-","+":"=","{":"[","}":"]","|":"\\",":":";",'"':"'","<":",",">":".","?":"/"};
@@ -14,7 +34,7 @@ const FINGERS = Object.keys(FINGER_KEYS);
 const LEFT_FINGERS = ["LEFT PINKY", "LEFT RING", "LEFT MIDDLE", "LEFT INDEX", "THUMB"];
 const RIGHT_FINGERS = ["THUMB", "RIGHT INDEX", "RIGHT MIDDLE", "RIGHT RING", "RIGHT PINKY"];
 
-type Level = "LETTERS" | "NUMBERS" | "SYMBOLS" | "RUSH" | "EXTREME";
+type Level = "LETTERS" | "NUMBERS" | "SYMBOLS" | "RUSH" | "EXTREME" | "IELTS" | "TOEFL";
 type GameState = "ready" | "playing" | "paused" | "over";
 let audioContext: AudioContext | null = null;
 
@@ -22,6 +42,7 @@ function keyBase(key: string) { return (SHIFT_BASE[key] || key).toLowerCase(); }
 function fingerFor(key: string) { const base = keyBase(key); return FINGERS.find((name) => FINGER_KEYS[name].includes(base)) || "RIGHT PINKY"; }
 function needsShift(key: string) { return /^[A-Z]$/.test(key) || Object.hasOwn(SHIFT_BASE, key); }
 function levelName(level: Level) { return level === "RUSH" ? "FULL MIX" : level; }
+function isVocabulary(level: Level): level is keyof typeof VOCABULARY { return level === "IELTS" || level === "TOEFL"; }
 function readRecord() { try { return Number(localStorage.getItem("vibetyping-record") || 0); } catch { return 0; } }
 function writeRecord(value: number) { try { localStorage.setItem("vibetyping-record", String(value)); } catch {} }
 function playSound(kind: "key" | "error") {
@@ -42,7 +63,13 @@ function HandGuide({ side, names, activeFingers }: { side: "left" | "right"; nam
   return <div className={`hand ${side}`}><div className="palm"><b>{side.toUpperCase()} HAND</b></div>{names.map((name, i) => <span key={name} className={`finger finger-${i + 1}${activeFingers.includes(name) ? " active" : ""}`} title={name}><i>{initial(name)}</i></span>)}</div>;
 }
 
-function makeTarget(level: Level) {
+function makeTarget(level: Level, repetitions = 3, previousWord = "") {
+  if (isVocabulary(level)) {
+    const words = VOCABULARY[level];
+    const choices = words.filter(([word]) => word !== previousWord);
+    const [word] = choices[Math.floor(Math.random() * choices.length)];
+    return Array.from({ length: repetitions }, () => word).join(" ");
+  }
   if (level === "LETTERS") return Array.from({ length: 8 }, () => LETTERS[Math.floor(Math.random() * LETTERS.length)]).join(" ");
   if (level === "NUMBERS") return Array.from({ length: 10 }, () => String(Math.floor(Math.random() * 900) + 10)).join(" ");
   if (level === "SYMBOLS") return Array.from({ length: 12 }, () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]).join(" ");
@@ -70,6 +97,8 @@ export default function Home() {
   const [mistakes, setMistakes] = useState(0);
   const [flash, setFlash] = useState<"good" | "bad" | "">("");
   const [record, setRecord] = useState(0);
+  const [repetitions, setRepetitions] = useState(3);
+  const [wordsCompleted, setWordsCompleted] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const scoreRef = useRef(0);
   const flashTimerRef = useRef<number | null>(null);
@@ -100,13 +129,13 @@ export default function Home() {
   }, [status, finish]);
 
   const start = () => {
-    setTarget(makeTarget(level)); setIndex(0); setTime(0); setScore(0); setCombo(0);
+    setTarget(makeTarget(level, repetitions)); setIndex(0); setTime(0); setScore(0); setCombo(0); setWordsCompleted(0);
     setBestCombo(0); setCorrect(0); setMistakes(0); setStatus("playing");
     setTimeout(() => inputRef.current?.focus(), 30);
   };
 
   const chooseLevel = (item: Level) => {
-    setLevel(item); setTarget(makeTarget(item)); setIndex(0);
+    setLevel(item); setTarget(makeTarget(item, repetitions)); setIndex(0); setWordsCompleted(0);
     if (status === "playing" || status === "paused") {
       setTime(0); setScore(0); setCombo(0); setBestCombo(0); setCorrect(0); setMistakes(0); setStatus("playing");
     }
@@ -121,7 +150,11 @@ export default function Home() {
       setCorrect((v) => v + 1); setCombo(nextCombo); setBestCombo((v) => Math.max(v, nextCombo));
       setScore((v) => v + 10 + Math.min(40, Math.floor(nextCombo / 5) * 2));
       setFlash("good");
-      if (index + 1 >= target.length) { setTarget(makeTarget(level)); setIndex(0); }
+      if (index + 1 >= target.length) {
+        const finishedWord = target.split(" ")[0];
+        if (isVocabulary(level)) setWordsCompleted((v) => v + 1);
+        setTarget(makeTarget(level, repetitions, finishedWord)); setIndex(0);
+      }
       else setIndex((v) => v + 1);
     } else {
       playSound("error");
@@ -154,6 +187,9 @@ export default function Home() {
   const shiftSide = activeFinger.startsWith("LEFT") ? "RIGHT" : "LEFT";
   const activeFingers = [activeFinger, ...(shiftRequired ? [`${shiftSide} PINKY`] : [])];
   const fingerLabel = shiftRequired ? `${activeFinger} + ${shiftSide} PINKY (SHIFT)` : activeFinger;
+  const currentWord = isVocabulary(level) ? target.split(" ")[0] : "";
+  const currentMeaning = isVocabulary(level) ? VOCABULARY[level].find(([word]) => word === currentWord)?.[1] : "";
+  const currentRepeat = isVocabulary(level) ? Math.min(repetitions, Math.floor(index / (currentWord.length + 1)) + 1) : 0;
 
   return (
     <main className={`app ${flash}`} onClick={() => inputRef.current?.focus()}>
@@ -161,14 +197,14 @@ export default function Home() {
         onChange={(e) => { const value = e.target.value; if (value) hitKey(value.at(-1)!); e.target.value = ""; }} />
 
       <header className="topbar">
-        <a className="brand" href="#" aria-label="VibeTyping home"><span className="brand-mark">VT</span><span>VIBETYPING<small>KEYBOARD ADVENTURE</small></span></a>
+        <a className="brand" href="#" aria-label="VibeTyping home"><span className="brand-mark">VT</span><span>VIBETYPING<small>TYPE · REPEAT · REMEMBER</small></span></a>
         <div className="record"><span>PERSONAL BEST</span><strong>{record.toLocaleString()}</strong><i>PTS</i></div>
       </header>
 
       <section className="hero">
-        <div className="eyebrow"><span /> OPEN-ENDED PRACTICE SESSION <span /></div>
-        <h1>Fingers ready. <em>Game on.</em></h1>
-        <p>Letters × numbers × symbols. Stay accurate, build your combo, and make every keystroke count.</p>
+        <div className="eyebrow"><span /> TYPING MEETS VOCABULARY <span /></div>
+        <h1>Type it. <em>Remember it.</em></h1>
+        <p>用重复输入强化拼写记忆，也可以继续练习字母、数字和符号。</p>
       </section>
 
       <section className="game-shell" aria-label="Typing game">
@@ -183,17 +219,21 @@ export default function Home() {
           {(["LETTERS","NUMBERS","SYMBOLS"] as Level[]).map((item) => <button key={item} onClick={() => chooseLevel(item)} className={level === item ? "selected" : ""}>{item}</button>)}
           <i /><span className="practice-label">CHALLENGE</span>
           {(["RUSH","EXTREME"] as Level[]).map((item) => <button key={item} onClick={() => chooseLevel(item)} className={level === item ? "selected" : ""}>{item === "RUSH" ? "FULL MIX" : item}</button>)}
+          <i /><span className="practice-label">背单词</span>
+          {(["IELTS","TOEFL"] as Level[]).map((item) => <button key={item} onClick={() => chooseLevel(item)} className={level === item ? "selected vocab-tab" : "vocab-tab"}>{item}</button>)}
         </nav>
 
         <div className="arena">
           <div className="grid-lines" />
           {status === "ready" && <div className="overlay intro">
-            <span className="round-badge">01</span><h2>Choose your practice</h2><p>Start with one key family or jump into a mixed challenge. Mistakes guide you and practice never stops.</p>
+            <span className="round-badge">01</span><h2>{isVocabulary(level) ? `${level} 单词打字背诵` : "Choose your practice"}</h2><p>{isVocabulary(level) ? "看释义，反复输入完整单词。每轮完成后自动切换到下一个词。" : "Start with one key family or jump into a mixed challenge. Mistakes guide you and practice never stops."}</p>
+            {isVocabulary(level) && <div className="repeat-setting"><label htmlFor="repeat-count">每个单词输入</label><button onClick={() => setRepetitions((v) => Math.max(1, v - 1))} aria-label="减少重复次数">−</button><input id="repeat-count" type="number" min="1" max="10" value={repetitions} onChange={(e) => setRepetitions(Math.min(10, Math.max(1, Number(e.target.value) || 1)))} /><button onClick={() => setRepetitions((v) => Math.min(10, v + 1))} aria-label="增加重复次数">＋</button><span>遍</span></div>}
             <button className="start-button" onClick={start}><span>START CHALLENGE</span><kbd>ENTER</kbd></button>
           </div>}
 
           {(status === "playing" || status === "paused") && <div className="playfield">
             <div className="mission"><span>CURRENT MISSION</span><i>{levelName(level)} MODE</i></div>
+            {isVocabulary(level) && <div className="word-card"><span className="word-level">{level} WORD</span><h2>{currentWord}</h2><p>{currentMeaning}</p><div><b>第 {currentRepeat} / {repetitions} 遍</b><span>本轮已完成 {wordsCompleted} 个单词</span></div></div>}
             <div className="target" aria-label="Typing target">{chars.map((char, i) => <span key={`${target}-${i}`} className={i < index ? "done" : i === index ? "current" : "pending"}>{char === " " ? "·" : char}</span>)}</div>
             <div className="progress"><i style={{width: `${index / target.length * 100}%`}} /></div>
             <div className="next-key">NEXT KEY <kbd>{nextKey === " " ? "SPACE" : nextKey}</kbd><span>{fingerLabel}</span></div>
@@ -212,7 +252,7 @@ export default function Home() {
         <div className="game-footer"><span><kbd>ESC</kbd> PAUSE / RESUME</span><span>ACCURACY <b>{accuracy}%</b></span><span>SPEED <b>{wpm} WPM</b></span></div>
       </section>
 
-      <footer><span>VIBETYPING / 2026</span><p>SLOW IS SMOOTH. SMOOTH IS FAST.</p><span>LEVEL: {levelName(level)}</span></footer>
+      <footer><span>VIBETYPING / 2026</span><p>TYPE · REPEAT · REMEMBER</p><span>LEVEL: {levelName(level)}</span></footer>
     </main>
   );
 }
