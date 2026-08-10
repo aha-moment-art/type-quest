@@ -18,21 +18,20 @@ test("server-renders the VibeTyping vocabulary app", async () => {
   const html = await response.text();
   assert.match(html, /<title>VibeTyping \| 打字背单词<\/title>/i);
   assert.match(html, /Type it\. <em>Remember it\.<\/em>/);
-  assert.match(html, />IELTS<\/button>/);
-  assert.match(html, />TOEFL<\/button>/);
+  assert.match(html, /12,217 WORDS · 11,871 SENTENCES/);
+  assert.match(html, />VOCABULARY<\/button>/);
   assert.doesNotMatch(html, /codex-preview|Building your site|react-loading-skeleton/i);
 });
 
-test("ships complete, locally hosted vocabulary audio", async () => {
+test("ships complete WordLeap dictionaries and locally hosted audio", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  const section = page.slice(page.indexOf("const VOCABULARY"), page.indexOf("} as const;"));
-  const words = [...new Set([...section.matchAll(/\["([a-z-]+)",/g)].map((match) => match[1]))];
-  const audioRoot = new URL("../public/audio/words/", import.meta.url);
-  const files = (await readdir(audioRoot)).filter((file) => file.endsWith(".mp3"));
-  assert.equal(words.length, 71);
-  assert.equal(files.length, words.length);
-  await Promise.all(words.map((word) => access(new URL(`${word}.mp3`, audioRoot))));
-  assert.match(page, /new Audio\(`\/audio\/words\//);
+  const wordFiles = (await readdir(new URL("../public/audio/words/", import.meta.url))).filter((file) => file.endsWith(".mp3"));
+  const sentenceFiles = (await readdir(new URL("../public/audio/sentences/", import.meta.url))).filter((file) => file.endsWith(".mp3"));
+  assert.equal(wordFiles.length, 12217);
+  assert.equal(sentenceFiles.length, 11871);
+  await Promise.all(["CET-4", "CET-6", "IELTS", "TOEFL", "PTE", "TEM-4", "TEM-8", "custom-examples"].map((name) => access(new URL(`../public/dicts/${name}.json`, import.meta.url))));
+  assert.match(page, /audio\/words/);
+  assert.match(page, /audio\/sentences/);
   assert.match(page, /英式 AI 发音/);
   assert.match(page, /自动朗读：开/);
 });
