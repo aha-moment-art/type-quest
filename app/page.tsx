@@ -5,22 +5,26 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 const LETTERS = ["flux", "orbit", "pixel", "nova", "shift", "vector", "quick", "blaze", "echo", "glitch", "tempo", "laser"];
 const VOCABULARY = {
   IELTS: [
-    ["abundant", "丰富的；充足的"], ["accurate", "准确的；精确的"], ["allocate", "分配；拨给"], ["alter", "改变；更改"],
-    ["ambiguous", "模棱两可的"], ["analyse", "分析"], ["apparent", "显而易见的"], ["approach", "方法；接近"],
-    ["assess", "评估；评价"], ["coherent", "连贯的；一致的"], ["compensate", "补偿；弥补"], ["consecutive", "连续的"],
-    ["considerable", "相当大的"], ["decline", "下降；衰退"], ["demonstrate", "证明；展示"], ["deteriorate", "恶化"],
-    ["diverse", "多样的"], ["enhance", "提高；增强"], ["feasible", "可行的"], ["fluctuate", "波动"],
+    ["abundant", "丰富的；充足的"], ["alternative", "可替代的；替代方案"], ["allocate", "分配；拨给"], ["alter", "改变；更改"],
+    ["ambiguous", "模棱两可的"], ["analyse", "分析"], ["apparent", "显而易见的"], ["consequence", "结果；后果"],
+    ["assess", "评估；评价"], ["coherent", "连贯的；一致的"], ["emerge", "出现；显露"], ["consecutive", "连续的"],
+    ["evident", "明显的；显然的"], ["decline", "下降；衰退"], ["persistent", "持续的；坚持不懈的"], ["deteriorate", "恶化"],
+    ["profound", "深刻的；意义深远的"], ["enhance", "提高；增强"], ["prevalent", "普遍的；流行的"], ["fluctuate", "波动"],
     ["inevitable", "不可避免的"], ["infrastructure", "基础设施"], ["interpret", "解释；理解"], ["predominant", "占主导地位的"],
-    ["significant", "重要的；显著的"], ["sustainable", "可持续的"], ["transform", "转变；改造"], ["whereas", "然而；鉴于"],
+    ["retain", "保留；保持"], ["sustainable", "可持续的"], ["transform", "转变；改造"], ["whereas", "然而；鉴于"],
+    ["valid", "有效的；合理的"], ["aggregate", "总计；合计的"], ["inherent", "内在的；固有的"], ["constitute", "构成；组成"],
+    ["mediate", "调解；促成"], ["notion", "概念；观念"], ["perceive", "察觉；理解"],
   ],
   TOEFL: [
-    ["abandon", "放弃；抛弃"], ["accumulate", "积累；聚集"], ["adjacent", "邻近的"], ["advocate", "提倡；拥护"],
-    ["arbitrary", "任意的；武断的"], ["attain", "达到；获得"], ["attribute", "把……归因于；属性"], ["comprehensive", "全面的"],
-    ["constrain", "限制；约束"], ["controversial", "有争议的"], ["crucial", "至关重要的"], ["derive", "获得；源自"],
-    ["discrete", "分离的；不连续的"], ["empirical", "以经验为依据的"], ["exhibit", "展示；展览品"], ["fundamental", "根本的；基础的"],
-    ["hypothesis", "假设；假说"], ["incorporate", "包含；合并"], ["inhibit", "抑制；阻止"], ["intrinsic", "固有的；内在的"],
+    ["analogy", "类比；相似之处"], ["accumulate", "积累；聚集"], ["adjacent", "邻近的"], ["advocate", "提倡；拥护"],
+    ["arbitrary", "任意的；武断的"], ["attain", "达到；获得"], ["attribute", "把……归因于；属性"], ["analogous", "类似的；可比拟的"],
+    ["constrain", "限制；约束"], ["controversial", "有争议的"], ["crucial", "至关重要的"], ["anticipate", "预期；预料"],
+    ["compile", "汇编；编纂"], ["empirical", "以经验为依据的"], ["conceive", "构想；设想"], ["deduce", "推断；演绎"],
+    ["distort", "歪曲；扭曲"], ["incorporate", "包含；合并"], ["inhibit", "抑制；阻止"], ["intrinsic", "固有的；内在的"],
     ["nevertheless", "尽管如此"], ["preliminary", "初步的；预备的"], ["subsequent", "随后的"], ["synthesize", "综合；合成"],
     ["tentative", "暂定的；试探性的"], ["undergo", "经历；承受"], ["validate", "验证；证实"], ["widespread", "广泛的"],
+    ["explicit", "明确的；直言的"], ["infer", "推断；推论"], ["persist", "坚持；持续存在"], ["precede", "先于；在……之前"],
+    ["refine", "改进；提炼"], ["simulate", "模拟；仿真"], ["specify", "明确说明；指定"], ["invoke", "援引；调用"],
   ],
 } as const;
 const SYMBOLS = ["!", "?", "@", "#", "$", "%", "&", "*", "+", "-", "=", ":", ";", "/", "_", ".", ","];
@@ -99,7 +103,9 @@ export default function Home() {
   const [record, setRecord] = useState(0);
   const [repetitions, setRepetitions] = useState(3);
   const [wordsCompleted, setWordsCompleted] = useState(0);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const wordAudioRef = useRef<HTMLAudioElement | null>(null);
   const scoreRef = useRef(0);
   const flashTimerRef = useRef<number | null>(null);
 
@@ -110,6 +116,21 @@ export default function Home() {
   const accuracy = correct + mistakes ? Math.round(correct / (correct + mistakes) * 100) : 100;
   const wpm = Math.round((correct / 5) / Math.max(1 / 60, time / 60));
   const timeLabel = `${String(Math.floor(time / 60)).padStart(2, "0")}:${String(time % 60).padStart(2, "0")}`;
+  const currentWord = isVocabulary(level) ? target.split(" ")[0] : "";
+
+  const playWord = useCallback((word: string) => {
+    if (!word) return;
+    wordAudioRef.current?.pause();
+    const audio = new Audio(`/audio/words/${encodeURIComponent(word)}.mp3`);
+    wordAudioRef.current = audio;
+    void audio.play().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (status !== "playing" || !isVocabulary(level) || !audioEnabled) return;
+    playWord(currentWord);
+    return () => wordAudioRef.current?.pause();
+  }, [audioEnabled, currentWord, level, playWord, status]);
 
   useEffect(() => { scoreRef.current = score; }, [score]);
 
@@ -187,7 +208,6 @@ export default function Home() {
   const shiftSide = activeFinger.startsWith("LEFT") ? "RIGHT" : "LEFT";
   const activeFingers = [activeFinger, ...(shiftRequired ? [`${shiftSide} PINKY`] : [])];
   const fingerLabel = shiftRequired ? `${activeFinger} + ${shiftSide} PINKY (SHIFT)` : activeFinger;
-  const currentWord = isVocabulary(level) ? target.split(" ")[0] : "";
   const currentMeaning = isVocabulary(level) ? VOCABULARY[level].find(([word]) => word === currentWord)?.[1] : "";
   const currentRepeat = isVocabulary(level) ? Math.min(repetitions, Math.floor(index / (currentWord.length + 1)) + 1) : 0;
 
@@ -233,7 +253,7 @@ export default function Home() {
 
           {(status === "playing" || status === "paused") && <div className="playfield">
             <div className="mission"><span>CURRENT MISSION</span><i>{levelName(level)} MODE</i></div>
-            {isVocabulary(level) && <div className="word-card"><span className="word-level">{level} WORD</span><h2>{currentWord}</h2><p>{currentMeaning}</p><div><b>第 {currentRepeat} / {repetitions} 遍</b><span>本轮已完成 {wordsCompleted} 个单词</span></div></div>}
+            {isVocabulary(level) && <div className="word-card"><span className="word-level">{level} WORD · 英式 AI 发音</span><div className="word-heading"><h2>{currentWord}</h2><button type="button" onClick={(e) => { e.stopPropagation(); playWord(currentWord); }} aria-label={`播放 ${currentWord} 的英式发音`} title="播放英式发音">🔊</button></div><p>{currentMeaning}</p><div className="word-meta"><b>第 {currentRepeat} / {repetitions} 遍</b><span>本轮已完成 {wordsCompleted} 个单词</span><button type="button" className="audio-toggle" onClick={(e) => { e.stopPropagation(); setAudioEnabled((v) => !v); }}>{audioEnabled ? "自动朗读：开" : "自动朗读：关"}</button></div></div>}
             <div className="target" aria-label="Typing target">{chars.map((char, i) => <span key={`${target}-${i}`} className={i < index ? "done" : i === index ? "current" : "pending"}>{char === " " ? "·" : char}</span>)}</div>
             <div className="progress"><i style={{width: `${index / target.length * 100}%`}} /></div>
             <div className="next-key">NEXT KEY <kbd>{nextKey === " " ? "SPACE" : nextKey}</kbd><span>{fingerLabel}</span></div>
