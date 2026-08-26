@@ -67,11 +67,11 @@ async function loadPracticeEntries(library: Library, mode: VocabMode, signal: Ab
   const names = library === "ALL" ? DICTIONARIES : [library];
   const [rawLibraries, customExamples] = await Promise.all([
     Promise.all(names.map(async (name) => {
-      const response = await fetch(`/dicts/${name}.json`, { signal });
+      const response = await fetch(`dicts/${name}.json`, { signal });
       if (!response.ok) throw new Error(`无法加载 ${name}`);
       return response.json() as Promise<RawEntry[]>;
     })),
-    fetch("/dicts/custom-examples.json", { signal }).then((response) => response.json() as Promise<CustomExample[]>),
+    fetch("dicts/custom-examples.json", { signal }).then((response) => response.json() as Promise<CustomExample[]>),
   ]);
   const raw = rawLibraries.flat();
   const words = new Map<string, RawEntry>();
@@ -133,7 +133,7 @@ export default function Home() {
 
   const playEntry = useCallback((entry: PracticeEntry | null) => {
     if (!entry) return; wordAudioRef.current?.pause();
-    const path = vocabMode === "WORD" ? `/audio/words/${encodeURIComponent(entry.audioId)}.mp3` : `/audio/sentences/${encodeURIComponent(entry.audioId)}.mp3`;
+    const path = vocabMode === "WORD" ? `audio/words/${encodeURIComponent(entry.audioId)}.mp3` : `audio/sentences/${encodeURIComponent(entry.audioId)}.mp3`;
     const audio = new Audio(path); wordAudioRef.current = audio; void audio.play().catch(() => {});
   }, [vocabMode]);
 
