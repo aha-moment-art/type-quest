@@ -33,5 +33,7 @@ test("ships complete WordLeap dictionaries and locally hosted audio", async () =
   assert.match(page, /audio\/words/);
   assert.match(page, /audio\/sentences/);
   assert.match(page, /英式 AI 发音/);
-  assert.match(page, /自动朗读：开/);
+  assert.match(page, /每遍朗读：开/);
+  assert.match(page, /currentItem\.audioId}:\$\{currentRepeat/);
+  assert.match(page, /currentItem, currentRepeat, level, playEntry/);
 });
