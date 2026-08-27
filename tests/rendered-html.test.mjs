@@ -41,5 +41,6 @@ test("ships complete WordLeap dictionaries and locally hosted audio", async () =
   assert.match(page, /isRepeatSeparator \? nextIndex \+ 1 : nextIndex/);
   assert.match(page, /vocab-word-target/);
   assert.match(styles, /--font-geist-mono:ui-monospace/);
-  assert.match(styles, /\.word-card h2[^}]*clamp\(56px,8vw,88px\)/);
+  assert.match(styles, /\.word-card h2[^}]*clamp\(44px,6vw,64px\)/);
+  assert.match(styles, /\.target\.vocab-word-target[^}]*clamp\(30px,4vw,44px\)/);
 });
