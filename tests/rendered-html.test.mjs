@@ -25,6 +25,7 @@ test("server-renders the VibeTyping vocabulary app", async () => {
 
 test("ships complete WordLeap dictionaries and locally hosted audio", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   const wordFiles = (await readdir(new URL("../public/audio/words/", import.meta.url))).filter((file) => file.endsWith(".mp3"));
   const sentenceFiles = (await readdir(new URL("../public/audio/sentences/", import.meta.url))).filter((file) => file.endsWith(".mp3"));
   assert.equal(wordFiles.length, 12217);
@@ -36,4 +37,9 @@ test("ships complete WordLeap dictionaries and locally hosted audio", async () =
   assert.match(page, /每遍朗读：开/);
   assert.match(page, /currentItem\.audioId}:\$\{currentRepeat/);
   assert.match(page, /currentItem, currentRepeat, level, playEntry/);
+  assert.match(page, /function nextTypingIndex/);
+  assert.match(page, /isRepeatSeparator \? nextIndex \+ 1 : nextIndex/);
+  assert.match(page, /vocab-word-target/);
+  assert.match(styles, /--font-geist-mono:ui-monospace/);
+  assert.match(styles, /\.word-card h2[^}]*clamp\(56px,8vw,88px\)/);
 });
